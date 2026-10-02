@@ -156,3 +156,37 @@ def test_explain_detects_a_mismatch():
     f._engine._candidate_scores = tampered
     with pytest.raises(RuntimeError):
         f.explain(["右", "右"])
+
+
+def test_save_load_roundtrip_is_exact(tmp_path):
+    import random
+    import numpy as np
+    data = [["右", "右", "下"] * 5, ["正常", "温度上昇", "振動増加", "停止"] * 3, [1, 2, 3, 1, 2, 3]]
+    a = Frog(pair_context_capacity=4).learn(data)          # small capacity: eviction order matters
+    a.save(tmp_path / "f.cse")
+    random.seed(7)
+    expected = random.random()
+    random.seed(7)
+    b = Frog.load(tmp_path / "f.cse")
+    assert random.random() == expected                     # loading does not reset the user's RNG
+    for prefix in (["右", "右"], ["正常", "温度上昇"], [1, 2], ["停止"]):
+        assert a.probabilities(prefix) == b.probabilities(prefix)
+        assert a.explain(prefix, k=50) == b.explain(prefix, k=50)
+    more = [["右", "下", "右"] * 4, [3, 2, 1] * 3]          # continuing to learn gives identical results
+    a.learn(more)
+    b.learn(more)
+    for prefix in (["右", "下"], [3, 2], ["右", "右"]):
+        assert a.probabilities(prefix) == b.probabilities(prefix)
+    assert np.array_equal(a._engine.weights, b._engine.weights)
+    assert list(a._engine.pair_context_weights) == list(b._engine.pair_context_weights)
+
+
+def test_save_rejects_unsupported_tokens_and_load_rejects_other_files(tmp_path):
+    f = Frog().learn([[("x", 1), ("y", 2)]])
+    with pytest.raises(ValueError):
+        f.save(tmp_path / "bad.cse")
+    import zipfile
+    with zipfile.ZipFile(tmp_path / "other.cse", "w") as z:
+        z.writestr("meta.json", '{"format": "something-else"}')
+    with pytest.raises(ValueError):
+        Frog.load(tmp_path / "other.cse")

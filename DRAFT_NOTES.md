@@ -25,3 +25,7 @@
 - `Frog()` が変えるのは `refractory_steps=0`・`history_boost=0.0`・`pair_context_capacity=2048`・`pair_context_boost=1.0`・`max_nodes=256` の5項目だけ。他は講座版エンジンの既定値(`probability_mode="softmax"`・温度0.8・`top_k_edges=3`・`max_edge_weight=10`・`weight_decay=0.9995` など)。
 - **研究の107の構成とは別物**(107は linear・`top_k_edges=50`・`max_edge_weight=100`・`weight_decay=1.0`・`normalize_direct_scores=True` など。講座版エンジンには `distribution_backoff_mix` 自体がない)。以前「107型」と書いたのは不正確だった。
 - 既定値の決め方(案): 小さなデモ課題(右右下、故障の系列、じゃんけん など)と選び方の基準を先に書いてから候補を比べ、変な予測が一番少ないものにする。
+
+## 方針(2026-10-03、ユーザー決定)
+- **配布は講座版エンジンだけでよい**。研究版の機能(チャンクなど)は入れない。「足したくなったら自分で作る」を中級〜上級の課題にする(例: よく出る記号の組を1つにまとめる = LLM のトークナイザーの BPE と同じ発想)。
+- 実用で一番効く差は精度より保存と読み込みだったので、`Frog.save()` / `Frog.load()` を追加(pickle なし、JSON + npy の zip、形式 `cse-frog/1`、pair の記憶の入れた順番も保存)。

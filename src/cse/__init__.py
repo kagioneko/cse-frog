@@ -10,8 +10,13 @@
 """
 from __future__ import annotations
 
+import dataclasses
+import io
+import json
 import random
 import threading
+import zipfile
+from pathlib import Path
 from typing import Dict, Hashable, Iterable, List, Optional, Sequence, Union
 
 import numpy as np
@@ -166,6 +171,70 @@ class Frog:
         if total <= 0:
             return {END: 1.0}
         return {k: v / total for k, v in out.items()}
+
+    # ------------------------------------------------------------ 保存と読み込み
+    _FORMAT = "cse-frog/1"
+    _TOKEN_TYPES = (str, int, float, bool, type(None))
+
+    def save(self, path) -> None:
+        """覚えたことをファイルに保存します(例: frog.save("my_frog.cse"))。
+
+        中身は JSON と数値の配列だけです(pickle は使いません。他の人の 🐸 を読み込んでも安全です)。
+        記号として使えるのは 文字列・整数・小数・True/False・None です。
+        """
+        with self._lock:
+            tokens = list(self._to_char)
+            bad = [t for t in tokens if type(t) not in self._TOKEN_TYPES]
+            if bad:
+                raise ValueError(f"保存できない種類の記号があります: {bad[:3]}。文字列・数・True/False・None だけが保存できます。")
+            e = self._engine
+            pair_keys = list(e.pair_context_weights)          # 入れた順番も保存する(容量が一杯のときの追い出しに効く)
+            meta = {"format": self._FORMAT, "cse_version": __version__,
+                    "config": dataclasses.asdict(self.config),
+                    "tokens": [[t, self._to_char[t]] for t in tokens],
+                    "id_to_symbol": list(e.id_to_symbol),
+                    "recent_fired": list(e.recent_fired),
+                    "total_training_steps": int(e.total_training_steps),
+                    "pair_keys": [list(k) for k in pair_keys]}
+            arrays = {"weights": e.weights, "context_weights": e.context_weights, "activation": e.activation,
+                      "context_trace": e.context_trace, "frequency": e.frequency,
+                      "pair_rows": (np.stack([e.pair_context_weights[k] for k in pair_keys]) if pair_keys
+                                    else np.zeros((0, self.config.max_nodes), dtype=np.float32))}
+            path = Path(path)
+            with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as z:
+                z.writestr("meta.json", json.dumps(meta, ensure_ascii=False))
+                for name, arr in arrays.items():
+                    buf = io.BytesIO()
+                    np.save(buf, np.ascontiguousarray(arr), allow_pickle=False)
+                    z.writestr(f"{name}.npy", buf.getvalue())
+
+    @classmethod
+    def load(cls, path) -> "Frog":
+        """save() したファイルから 🐸 を読み込みます(例: frog = Frog.load("my_frog.cse"))。"""
+        with zipfile.ZipFile(Path(path)) as z:
+            meta = json.loads(z.read("meta.json").decode("utf-8"))
+            if meta.get("format") != cls._FORMAT:
+                raise ValueError(f"cse の 🐸 ファイルではないか、形式が違います(format={meta.get('format')!r})。")
+            arrays = {n[:-4]: np.load(io.BytesIO(z.read(n)), allow_pickle=False) for n in z.namelist() if n.endswith(".npy")}
+        frog = cls(**meta["config"])                      # 乱数の状態は __init__ の中で元に戻る
+        e, n = frog._engine, frog.config.max_nodes
+        for name, dtype in (("weights", np.float32), ("context_weights", np.float32), ("activation", np.float32),
+                            ("context_trace", np.float32), ("frequency", np.int64)):
+            arr = arrays[name]
+            if arr.dtype != dtype or arr.shape != getattr(e, name).shape:
+                raise ValueError(f"ファイルの中身が壊れています({name})。")
+            setattr(e, name, arr.copy())
+        e.id_to_symbol = list(meta["id_to_symbol"])
+        e.symbol_to_id = {sym: i for i, sym in enumerate(e.id_to_symbol)}
+        rows = arrays["pair_rows"]
+        if rows.shape != (len(meta["pair_keys"]), n) or rows.dtype != np.float32:
+            raise ValueError("ファイルの中身が壊れています(pair_rows)。")
+        e.pair_context_weights = {tuple(k): rows[i].copy() for i, k in enumerate(meta["pair_keys"])}
+        e.recent_fired = list(meta["recent_fired"])
+        e.total_training_steps = int(meta["total_training_steps"])
+        frog._to_char = {tok: ch for tok, ch in meta["tokens"]}
+        frog._to_token = {ch: tok for tok, ch in meta["tokens"]}
+        return frog
 
     # ------------------------------------------------------------ 中身をのぞく(上級向け)
     def _key(self, sym: str) -> Token:
