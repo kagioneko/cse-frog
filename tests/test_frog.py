@@ -61,3 +61,26 @@ def test_overrides_change_behaviour():
     assert f.config.refractory_steps == 2
     assert f.predict(["右", "右", "下"]) is END        # the refractory trap, reproduced on purpose
     assert Frog().learn(data).predict(["右", "右", "下"]) == "右"
+
+
+def test_user_random_state_is_not_reset():
+    import random
+    import numpy as np
+    random.seed(123)
+    np.random.seed(123)
+    expected_py, expected_np = random.random(), np.random.rand()
+    random.seed(123)
+    np.random.seed(123)
+    Frog()                                         # the engine seeds globally inside; Frog must restore
+    assert random.random() == expected_py and np.random.rand() == expected_np
+
+
+def test_predictions_do_not_drift_and_are_thread_safe():
+    from concurrent.futures import ThreadPoolExecutor
+    f = Frog().learn([["右", "右", "下"] * 5, ["正常", "温度上昇", "振動増加", "停止"] * 3])
+    prefixes = [["右", "右"], ["右", "右", "下"], ["正常", "温度上昇"], ["振動増加"]] * 25
+    sequential = [f.probabilities(p) for p in prefixes]
+    assert sequential[:4] == sequential[4:8]       # repeated calls give identical results (no hidden drift)
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        parallel = list(ex.map(f.probabilities, prefixes))
+    assert parallel == sequential

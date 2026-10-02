@@ -10,7 +10,11 @@
 """
 from __future__ import annotations
 
+import random
+import threading
 from typing import Dict, Hashable, Iterable, List, Optional, Sequence, Union
+
+import numpy as np
 
 from ._engine import ChainSpikeEngine, CSEConfig
 
@@ -78,7 +82,17 @@ class Frog:
         settings = dict(_SAFE_DEFAULTS)
         settings.update(overrides)
         self.config = CSEConfig(**settings)
-        self._engine = ChainSpikeEngine(self.config)
+        # エンジンは作られるときに random.seed / np.random.seed をプロセス全体に対して呼ぶ。
+        # 利用者の乱数を巻き込まないよう、作る前の乱数の状態を保存して、作った後に元へ戻す。
+        py_state, np_state = random.getstate(), np.random.get_state()
+        try:
+            self._engine = ChainSpikeEngine(self.config)
+        finally:
+            random.setstate(py_state)
+            np.random.set_state(np_state)
+        # エンジンは予測のたびに内部の状態(活性など)を書き換えるので、同じ Frog を複数のスレッドから
+        # 同時に使っても壊れないよう、学習と予測を1つずつ順番に通す。
+        self._lock = threading.Lock()
         self._to_char: Dict[Token, str] = {}
         self._to_token: Dict[str, Token] = {}
 
@@ -112,8 +126,9 @@ class Frog:
         """
         if isinstance(sequences, str):
             sequences = [sequences]
-        texts = [self._encode(self._as_tokens(s), allow_new=True) for s in sequences]
-        self._engine.train_corpus([t for t in texts if t], epochs=epochs)
+        with self._lock:                       # 記号の対応表の更新も含めて1つずつ
+            texts = [self._encode(self._as_tokens(s), allow_new=True) for s in sequences]
+            self._engine.train_corpus([t for t in texts if t], epochs=epochs)
         return self
 
     def probabilities(self, prefix: SequenceLike = ()) -> Dict[Token, float]:
@@ -121,14 +136,15 @@ class Frog:
 
         確率の合計は 1 です(<START>・<UNK> は除いて、残りで割り直しています)。
         """
-        text = self._encode(self._as_tokens(prefix), allow_new=False)
-        raw = self._engine.next_node_distribution(text)
-        out: Dict[Token, float] = {}
-        for sym, p in raw.items():
-            if sym in ("<START>", "<UNK>"):
-                continue
-            key = END if sym == "<END>" else self._to_token[sym]
-            out[key] = out.get(key, 0.0) + p
+        with self._lock:                       # 対応表の読み取り・エンジンの予測・読み戻しを1つずつ
+            text = self._encode(self._as_tokens(prefix), allow_new=False)
+            raw = self._engine.next_node_distribution(text)
+            out: Dict[Token, float] = {}
+            for sym, p in raw.items():
+                if sym in ("<START>", "<UNK>"):
+                    continue
+                key = END if sym == "<END>" else self._to_token[sym]
+                out[key] = out.get(key, 0.0) + p
         total = sum(out.values())
         if total <= 0:
             return {END: 1.0}
