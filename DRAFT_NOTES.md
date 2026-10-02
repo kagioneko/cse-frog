@@ -1,22 +1,21 @@
-# DRAFT NOTES (chainspike 0.0.1.dev0, scratchpad draft — not published, not in any git repo)
+# 開発メモ(配布前)
 
-## Provenance
-- `src/chainspike/_engine.py` = unchanged copy of `course/cse_course_engine.py`, sha256 `a7af714753e4e0a260b354fd280f77444f93b44957b2e2af432b04bc8f2d87c9` (copy verified identical). The research `cse/` package and `chain_spike_phase0.py` are NOT included.
-- Offline wheel build (`pip wheel . --no-deps --no-build-isolation --no-index`) contains only `chainspike/__init__.py`, `chainspike/_engine.py` + dist-info.
+## 決定済み(2026-10-03)
+- **名前**: パッケージ名・import名は `cse`(`from cse import Frog`)。PyPI で `cse` が登録できない場合は、配布名だけを変える(例 `cse-lm`)。import名は `cse` のまま。
+- **ライセンス**: MIT。著作権表示 `Copyright (c) 2026 Emilia Lab / 鍵乃ねこ (kagioneko)`。再配布・公開時はこの表示を残す(MITの条件)。
+- **系列の終わり**: 専用の目印 `cse.END`(表示は `<END>`)。利用者の記号とはぶつからない。
+- **研究版との一致**: README に一文だけ書く。一致テスト本体は配布しない。
+- **エンジン**: `src/cse/_engine.py` は講座版エンジン `course/cse_course_engine.py`(研究リポジトリ)の無変更のコピー。sha256(LF改行) `a7af714753e4e0a260b354fd280f77444f93b44957b2e2af432b04bc8f2d87c9`。研究版の `cse/` パッケージ・`chain_spike_phase0.py` は含めない。
 
-## Decisions the owner must make
-1. Final PyPI name (`chainspike` is a placeholder; as of 2026-10-03 `chain-spike`, `chainspike`, `chain-spike-engine`, `frog-lm` were unregistered).
-2. License (placeholder "MIT (pending owner decision)"; newer setuptools prefer an SPDX string `license = "MIT"` + `license-files`).
-3. FTO by a patent attorney before commercial use, scoped to the course-engine feature set.
-4. Default settings for beginners (currently refractory 0, history_boost 0, pair_context 2048/1.0, max_nodes 256).
-5. How to represent "end of sequence" (currently `None`, exported as `chainspike.END`).
-6. Whether the research-equivalence test of the course engine should be referenced in docs (it is not shipped).
+## 保留・後回し
+- **FTO(他社特許の侵害予防調査)**: 有償化・商用利用の前に弁理士へ(講座版エンジンに含まれる機能の範囲で)。AIとの検索は代わりにならない。
+- **初心者向けの既定値**(`Frog()` の `_SAFE_DEFAULTS`: `refractory_steps=0`、`history_boost=0.0`、pair context 2048/1.0、`max_nodes=256`)は再検討中。
 
-## Engine quirks found
-- The course engine allocates `max_nodes x max_nodes` float32 matrices at construction (two of them), so `max_nodes` caps the vocabulary; `Frog` sets 256 (~0.5 MB) and raises a Japanese error if the token count exceeds `max_nodes - 3`.
-- The engine is character-level (`encode` iterates characters); `Frog` maps each distinct user token to one private-use character (U+E000+).
-- Engine defaults (`refractory_steps=2`, `history_boost=0.35`, no pair context) give surprising predictions on repeat-heavy sequences (e.g. after 右右下 the default predicts `<END>`); `refractory_steps=0` alone predicts 右 after 右右 (0.997). Pair context is needed for 右右→下.
-- `next_node_distribution` re-primes the engine (mutates transient state) on every call; fine for single-threaded use, not thread-safe.
-- `ChainSpikeEngine.__init__` calls `random.seed`/`np.random.seed` globally (side effect on the user's global RNG). Worth documenting or wrapping before release.
-- `Frog.probabilities` drops `<START>`/`<UNK>` and renormalizes; `<UNK>` can only get mass if `max_nodes` overflow mapped tokens to it (prevented by the wrapper's limit).
-- `learn()` on a list of strings treats each string as a character sequence; multi-character words need a list of lists. Documented in the class docstring and README.
+## 公開前に直す・書くこと(エンジンの癖)
+- エンジンを作ると `random.seed` / `np.random.seed` がプロセス全体で呼ばれ、利用者の乱数がリセットされる。
+- `next_node_distribution` は呼ぶたびに内部状態を変える(スレッドセーフでない)。
+- `max_nodes` が語彙の上限で、`max_nodes × max_nodes` の行列を最初に確保する。
+- 開発時の注意: 研究リポジトリの中では、研究版の `cse/` が先に読み込まれるので、この配布版を試さない。
+
+## 公開の手順(すべて明示のOKをもらってから)
+1. GitHub の公開リポジトリ作成 → 2. TestPyPI → `pip install` と Colab で確認 → 3. 本番 PyPI。
