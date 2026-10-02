@@ -167,6 +167,131 @@ class Frog:
             return {END: 1.0}
         return {k: v / total for k, v in out.items()}
 
+    # ------------------------------------------------------------ 中身をのぞく(上級向け)
+    def _key(self, sym: str) -> Token:
+        return END if sym == "<END>" else self._to_token[sym]
+
+    def _inside(self, prefix: SequenceLike):
+        """予測と同じ手順で状態を作り、点数の内訳を読み取る(エンジンは変えない)。ロックの中で呼ぶ。"""
+        e = self._engine
+        text = self._encode(self._as_tokens(prefix), allow_new=False)
+        current = e.prime(text)                    # next_node_distribution と同じ手順
+        e._inject(current, 1.0)
+        e._propagate_once()
+        final = e._candidate_scores(current)       # エンジン自身の点数
+        n, cfg = e.node_count, e.cfg
+        direct = e.weights[current, :n].astype(np.float64).copy()
+        if cfg.normalize_direct_scores:
+            total = direct[direct > 0].sum()
+            if total > 0:
+                direct /= total
+        history = e.activation[:n].astype(np.float64).copy()
+        for sym in ("<START>", "<UNK>"):
+            history[e.symbol_to_id[sym]] = 0.0
+        if direct[e.symbol_to_id["<END>"]] <= 0:
+            history[e.symbol_to_id["<END>"]] = 0.0
+        history_term = cfg.history_boost * history
+        pair_term = np.zeros(n)
+        if cfg.pair_context_boost > 0.0:
+            if len(e.recent_fired) >= 2:
+                pair = (e.recent_fired[-2], e.recent_fired[-1])
+            elif len(e.recent_fired) == 1:
+                pair = (e.symbol_to_id["<START>"], e.recent_fired[-1])
+            else:
+                pair = None
+            row = e.pair_context_weights.get(pair) if pair else None
+            if row is not None:
+                ps = row[:n].astype(np.float64)
+                pt = ps[ps > 0].sum()
+                if pt > 0.0:
+                    pair_term = cfg.pair_context_boost * (ps / pt)
+        trace_term = np.zeros(n)
+        if cfg.context_projection_boost > 0:
+            reachable = (direct + history_term + pair_term) > 0
+            trace = e.context_trace[:n].astype(np.float64).copy()
+            trace[current] = 0.0
+            for sym in ("<START>", "<END>", "<UNK>"):
+                trace[e.symbol_to_id[sym]] = 0.0
+            proj = trace @ (e.weights[:n, :n].astype(np.float64) + e.context_weights[:n, :n].astype(np.float64))
+            proj[~reachable] = 0.0
+            for sym in ("<START>", "<END>", "<UNK>"):
+                proj[e.symbol_to_id[sym]] = 0.0
+            trace_term = cfg.context_projection_boost * proj
+        rebuilt = direct.copy()                     # エンジンと同じ順番で足す
+        rebuilt += history_term
+        rebuilt += pair_term
+        rebuilt += trace_term
+        rebuilt[e.symbol_to_id["<START>"]] = 0.0
+        blocked = (rebuilt != 0) & (final == 0)     # 不応期で 0 にされた候補
+        rebuilt[blocked] = 0.0
+        if not np.array_equal(rebuilt, final):      # 内訳がエンジンの計算とずれていたら知らせる
+            raise RuntimeError("内訳の再計算がエンジンの点数と一致しませんでした(cse のバグです。報告してください)")
+        probs = e._probabilities(final)
+        return dict(final=final, direct=direct, history=history_term, pair=pair_term, trace=trace_term,
+                    blocked=blocked, probs=probs)
+
+    def scores(self, prefix: SequenceLike = ()) -> Dict[Token, float]:
+        """確率に変える「前」の生の点数を返します(0 より大きいものだけ、高い順)。
+
+        確率は、この点数の上位 top_k_edges 個を softmax(温度 temperature)か linear で変換したものです。
+        自分でサンプラー(Top-p など)を作るときの材料にどうぞ。
+        """
+        with self._lock:
+            d = self._inside(prefix)
+            e = self._engine
+            out = {self._key(e.id_to_symbol[i]): float(v) for i, v in enumerate(d["final"])
+                   if v > 0 and e.id_to_symbol[i] not in ("<START>", "<UNK>")}
+        return dict(sorted(out.items(), key=lambda kv: -kv[1]))
+
+    def explain(self, prefix: SequenceLike = (), k: int = 5) -> List[dict]:
+        """次の記号の点数が「どこから来たか」を、候補ごとに分けて返します(点数の高い順に k 個)。
+
+        - direct  : 今の記号からの直接のつながり(学習で強くなった結びつき)
+        - history : 少し前の記号の活性の残り(history_boost が 0 なら 0)
+        - pair    : 直前2つの並びの記憶
+        - trace   : ゆっくり残る文脈の痕跡(context_projection_boost が 0 なら 0)
+        - score   : 合計点(= 上の4つの和。不応期で消された候補は 0)
+        - blocked : 不応期で 0 にされたか
+        - prob    : 最終的な確率
+        """
+        with self._lock:
+            d = self._inside(prefix)
+            e = self._engine
+            rows = []
+            for i in range(e.node_count):
+                sym = e.id_to_symbol[i]
+                if sym in ("<START>", "<UNK>"):
+                    continue
+                parts = (d["direct"][i], d["history"][i], d["pair"][i], d["trace"][i])
+                if d["final"][i] <= 0 and not d["blocked"][i]:
+                    continue
+                rows.append({"token": self._key(sym), "direct": float(parts[0]), "history": float(parts[1]),
+                             "pair": float(parts[2]), "trace": float(parts[3]), "score": float(d["final"][i]),
+                             "blocked": bool(d["blocked"][i]), "prob": float(d["probs"][i])})
+        rows.sort(key=lambda r: (-r["score"], -sum((r["direct"], r["history"], r["pair"], r["trace"]))))
+        return rows[:k]
+
+    def show(self, prefix: SequenceLike = (), k: int = 5) -> None:
+        """explain() の結果を表で表示します。"""
+        print(f"🐸 {list(self._as_tokens(prefix))} の次の候補")
+        print(f"{'候補':<8}{'直接':>8}{'履歴':>8}{'並び':>8}{'痕跡':>8}{'合計点':>9}{'確率':>8}")
+        for r in self.explain(prefix, k):
+            mark = "  ← 不応期で消された" if r["blocked"] else ""
+            print(f"{str(r['token']):<8}{r['direct']:>8.3f}{r['history']:>8.3f}{r['pair']:>8.3f}{r['trace']:>8.3f}"
+                  f"{r['score']:>9.3f}{r['prob']:>8.3f}{mark}")
+
+    def edges(self, token: Token, k: int = 10) -> List[tuple]:
+        """その記号から出ている「直接のつながり」と強さを、強い順に k 個返します(何を覚えたか)。"""
+        with self._lock:
+            if token not in self._to_char:
+                raise ValueError(f"「{token}」はまだ覚えていない記号です。")
+            e = self._engine
+            i = e.symbol_to_id[self._to_char[token]]
+            row = e.weights[i, :e.node_count]
+            out = [(self._key(e.id_to_symbol[j]), float(row[j])) for j in np.argsort(-row)
+                   if row[j] > 0 and e.id_to_symbol[j] not in ("<START>", "<UNK>")]
+        return out[:k]
+
     def top(self, prefix: SequenceLike = (), k: int = 3) -> List[tuple]:
         """確率の高い順に k 個、(記号, 確率) を返します。"""
         items = sorted(self.probabilities(prefix).items(), key=lambda kv: -kv[1])

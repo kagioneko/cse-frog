@@ -65,3 +65,34 @@ Frog(temperature=2.0).learn(data).top(["右", "右", "下"])    # 右 0.68 / <EN
 - `Frog()` を作っても、あなたのプログラムの乱数(`random` / `numpy.random`)の状態は変わりません。
 - 同じ `Frog` を複数のスレッドから同時に使っても、予測は壊れません(学習と予測は1つずつ順番に処理されます)。
 - 覚えられる記号の数には上限があります(`max_nodes − 3` 個。既定 253 個)。こえるとエラーで知らせます。`Frog(max_nodes=1000)` のように増やせますが、メモリは `max_nodes` の2乗で増えます。
+
+## 中身をのぞく(中級〜上級)🔍
+大きなLLMではできない、「どこで・なぜその予測をしたか」を数字で見られます。
+
+```python
+from cse import Frog
+frog = Frog(refractory_steps=2).learn([["右", "右", "下"] * 5])
+frog.show(["右", "右", "下"])
+# 🐸 ['右', '右', '下'] の次の候補
+# 候補            直接      履歴      並び      痕跡      合計点      確率
+# <END>      0.298   0.000   0.200   0.000    0.498   1.000
+# 右          1.186   0.000   0.800   0.000    0.000   0.000  ← 不応期で消された
+```
+
+- `frog.explain(prefix, k=5)`: 候補ごとの点数の内訳(直接のつながり・履歴・直前2つの並び・文脈の痕跡)と確率。内訳の合計がエンジンの点数とぴったり一致することを、毎回確認しています。
+- `frog.scores(prefix)`: 確率に変える**前**の生の点数。これを使って Top-p や Top-k のサンプラーを自分で作れます。
+- `frog.edges("右")`: その記号から出ている「直接のつながり」と強さ(何を覚えたか)。
+
+### 例: Top-p サンプラーを自分で作る
+```python
+import random
+def top_p(frog, prefix, p=0.9):
+    items = sorted(frog.probabilities(prefix).items(), key=lambda kv: -kv[1])
+    keep, total = [], 0.0
+    for tok, prob in items:
+        keep.append((tok, prob)); total += prob
+        if total >= p:
+            break
+    tokens, weights = zip(*keep)
+    return random.choices(tokens, weights=weights)[0]
+```

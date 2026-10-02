@@ -97,3 +97,62 @@ def test_learn_input_shapes():
     import pytest
     with pytest.raises(ValueError):
         Frog().learn([["右"], "下"])                          # mixed shapes are rejected with a Japanese message
+
+
+import pytest
+
+
+@pytest.mark.parametrize("overrides", [
+    {},
+    {"refractory_steps": 2},
+    {"history_boost": 0.35},
+    {"context_trace_decay": 0.9, "context_projection_boost": 0.5},
+    {"normalize_direct_scores": True, "probability_mode": "linear"},
+    {"pair_context_capacity": 0, "pair_context_boost": 0.0},
+])
+def test_explain_matches_engine(overrides):
+    data = [["右", "右", "下"] * 5, ["正常", "温度上昇", "振動増加", "停止"] * 3]
+    f = Frog(**overrides).learn(data)
+    for prefix in (["右", "右"], ["右", "右", "下"], ["正常", "温度上昇"], ["停止"]):
+        rows = f.explain(prefix, k=100)                # _inside() raises if the rebuilt score != engine score
+        probs = f.probabilities(prefix)
+        scores = f.scores(prefix)
+        for r in rows:
+            parts = r["direct"] + r["history"] + r["pair"] + r["trace"]
+            if r["blocked"]:
+                assert r["score"] == 0.0 and parts > 0
+            else:
+                assert abs(r["score"] - parts) < 1e-12
+                assert scores[r["token"]] == r["score"]
+        # explain's probabilities are the engine's (renormalized without <START>/<UNK> in probabilities())
+        total = sum(r["prob"] for r in rows if r["prob"] > 0)
+        for r in rows:
+            if r["prob"] > 0:
+                assert abs(probs[r["token"]] - r["prob"] / total) < 1e-12
+
+
+def test_refractory_block_is_visible():
+    f = Frog(refractory_steps=2).learn([["右", "右", "下"] * 5])
+    rows = {r["token"]: r for r in f.explain(["右", "右", "下"], k=10)}
+    assert rows["右"]["blocked"] and rows["右"]["score"] == 0.0
+    assert f.predict(["右", "右", "下"]) is END
+
+
+def test_edges_and_explain_errors():
+    f = Frog().learn([["右", "右", "下"] * 5])
+    assert {t for t, _ in f.edges("右")} == {"右", "下"}
+    with pytest.raises(ValueError):
+        f.edges("左")
+
+
+def test_explain_detects_a_mismatch():
+    f = Frog().learn([["右", "右", "下"] * 5])
+    original = f._engine._candidate_scores
+
+    def tampered(current_id):                         # negative control: engine score off by a tiny amount
+        s = original(current_id)
+        s[s > 0] += 1e-9
+        return s
+    f._engine._candidate_scores = tampered
+    with pytest.raises(RuntimeError):
+        f.explain(["右", "右"])
