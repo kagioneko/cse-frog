@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cse"  # owner decision 2026-10-03. If PyPI rejects "cse", change ONLY this distribution name (e.g. "cse-lm"); the import name stays `cse`
+version = "0.0.1.dev0"
+description = "A tiny sequence-prediction AI for learning Python and how language models work (Chain-Spike Engine, course edition)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy"]
+license = {text = "MIT"}
+authors = [{name = "Emilia Lab"}, {name = "鍵乃ねこ (kagioneko)"}]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
