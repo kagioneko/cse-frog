@@ -119,17 +119,34 @@ class Frog:
         return "".join(chars)
 
     # ------------------------------------------------------------ 公開API
-    def learn(self, sequences: Union[str, Sequence[SequenceLike]], epochs: int = 3) -> "Frog":
-        """系列を覚えます。sequences は「系列のリスト」です(文字列1つだけでもOK)。
+    def learn(self, data, epochs: int = 3) -> "Frog":
+        """系列を覚えます。渡し方は3通りです(predict と同じ考え方)。
 
-        例: frog.learn(["右右下", "右右下"]) / frog.learn([["正常", "温度上昇", "停止"]])
+        - 文字列1つ        frog.learn("右右下右右下")                 → 1本の系列。1文字が1記号
+        - リスト1つ        frog.learn(["正常", "温度上昇", "停止"])    → 1本の系列。1要素が1記号
+        - リストのリスト   frog.learn([["右", "右", "下"], ["正常", "停止"]])  → 何本もの系列
+
+        epochs は同じデータを何周くり返して覚えるか(既定 3)。多いほど強く覚えます。
         """
-        if isinstance(sequences, str):
-            sequences = [sequences]
+        sequences = self._as_sequences(data)
         with self._lock:                       # 記号の対応表の更新も含めて1つずつ
             texts = [self._encode(self._as_tokens(s), allow_new=True) for s in sequences]
             self._engine.train_corpus([t for t in texts if t], epochs=epochs)
         return self
+
+    @staticmethod
+    def _as_sequences(data) -> List[SequenceLike]:
+        """learn() の入力を「系列のリスト」にそろえる。"""
+        if isinstance(data, str):
+            return [data]
+        items = list(data)
+        nested = [isinstance(x, (list, tuple)) for x in items]
+        if items and all(nested):
+            return items                       # リストのリスト = 何本もの系列
+        if any(nested):
+            raise ValueError("リストの中に、リストとそれ以外がまざっています。"
+                             "1本だけなら [\"右\", \"右\", \"下\"]、何本もなら [[...], [...]] のようにそろえてください。")
+        return [items]                         # リスト1つ = 1本の系列(1要素が1記号)
 
     def probabilities(self, prefix: SequenceLike = ()) -> Dict[Token, float]:
         """prefix の次に来る記号の確率を返します。キー END(表示は <END>)は「ここで終わり」。

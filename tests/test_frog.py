@@ -6,7 +6,7 @@ from cse import END, Frog
 
 
 def trained():
-    return Frog().learn(["右右下右右下右右下", "右右下右右下"], epochs=5)
+    return Frog().learn([list("右右下右右下右右下"), list("右右下右右下")], epochs=5)
 
 
 def test_right_right_down():
@@ -84,3 +84,16 @@ def test_predictions_do_not_drift_and_are_thread_safe():
     with ThreadPoolExecutor(max_workers=8) as ex:
         parallel = list(ex.map(f.probabilities, prefixes))
     assert parallel == sequential
+
+
+def test_learn_input_shapes():
+    flat = Frog().learn(["右", "右", "下"] * 3)                 # one flat list = ONE sequence (beginner trap fixed)
+    nested = Frog().learn([["右", "右", "下"] * 3])
+    string = Frog().learn("右右下" * 3)
+    assert flat.probabilities(["右", "右"]) == nested.probabilities(["右", "右"]) == string.probabilities("右右")
+    assert flat.predict(["右", "右"]) == "下"
+    many = Frog().learn([["正常", "温度上昇", "停止"], ["右", "右", "下"]])
+    assert many.predict(["正常", "温度上昇"]) == "停止" and many.predict(["右", "右"]) == "下"
+    import pytest
+    with pytest.raises(ValueError):
+        Frog().learn([["右"], "下"])                          # mixed shapes are rejected with a Japanese message
