@@ -275,7 +275,10 @@ class Frog:
         """explain() の結果を表で表示します。"""
         print(f"🐸 {list(self._as_tokens(prefix))} の次の候補")
         print(f"{'候補':<8}{'直接':>8}{'履歴':>8}{'並び':>8}{'痕跡':>8}{'合計点':>9}{'確率':>8}")
-        for r in self.explain(prefix, k):
+        rows = self.explain(prefix, k)
+        if not any(r["score"] > 0 for r in rows):
+            print("(点数がプラスの候補が1つもありません → エンジンは <END> を確率1で返します)")
+        for r in rows:
             mark = "  ← 不応期で消された" if r["blocked"] else ""
             print(f"{str(r['token']):<8}{r['direct']:>8.3f}{r['history']:>8.3f}{r['pair']:>8.3f}{r['trace']:>8.3f}"
                   f"{r['score']:>9.3f}{r['prob']:>8.3f}{mark}")
