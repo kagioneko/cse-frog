@@ -52,3 +52,12 @@ def test_unknown_setting_error():
 def test_top_sorted():
     t = trained().top(["右"], k=2)
     assert len(t) == 2 and t[0][1] >= t[1][1]
+
+
+def test_overrides_change_behaviour():
+    data = [["右", "右", "下"] * 5]
+    assert Frog().config.refractory_steps == 0
+    f = Frog(refractory_steps=2).learn(data)
+    assert f.config.refractory_steps == 2
+    assert f.predict(["右", "右", "下"]) is END        # the refractory trap, reproduced on purpose
+    assert Frog().learn(data).predict(["右", "右", "下"]) == "右"

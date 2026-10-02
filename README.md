@@ -40,3 +40,22 @@ print(frog.top(["右"], k=2))                 # 確率の高い順に2つ
 ## ライセンス
 MIT License。Copyright (c) 2026 Emilia Lab / 鍵乃ねこ (kagioneko)。
 再配布・公開するときは、`LICENSE` の著作権表示とライセンス文を含めてください。
+
+## 設定をいじって壊して遊ぶ 🐸
+`Frog(設定名=値)` で、エンジンの設定を1つずつ変えられます。今の設定は `frog.config` で見られます。知らない設定名を書くと、使える名前の一覧つきでエラーになります。
+
+```python
+from cse import Frog
+data = [["右", "右", "下"] * 5]
+
+Frog().learn(data).top(["右", "右", "下"])                    # 右 0.87 / <END> 0.13   (素直)
+Frog(refractory_steps=2).learn(data).top(["右", "右", "下"])  # <END> 1.0             (不応期: 直前に出た「右」を出せない!)
+Frog(probability_mode="linear").learn(data).top(["右", "右", "下"])  # 右 0.80 / <END> 0.20 (確率の出し方を変える)
+Frog(temperature=2.0).learn(data).top(["右", "右", "下"])    # 右 0.68 / <END> 0.32   (温度を上げると自信が弱まる)
+```
+
+- `refractory_steps`: 直前に出た記号を、しばらく出さない仕組み(不応期)。既定は 0(オフ)。
+- `history_boost`: 少し前の記号の「残り香」で点数を盛る。既定は 0.0(オフ)。
+- `temperature` / `probability_mode`: 点数を確率に変える方法。温度が低いほど、確率が 0 か 1 に張り付きやすい。
+- `pair_context_capacity` / `pair_context_boost`: 直前2つの並びを覚える量と、その使い方の強さ。0 にすると「右右 → 下」が覚えにくくなる。
+- `max_nodes`: 覚えられる記号の数の上限(+3)。
