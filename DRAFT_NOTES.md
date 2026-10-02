@@ -19,3 +19,8 @@
 
 ## 公開の手順(すべて明示のOKをもらってから)
 1. GitHub の公開リポジトリ作成 → 2. TestPyPI → `pip install` と Colab で確認 → 3. 本番 PyPI。
+
+## 既定値についての訂正(2026-10-03)
+- `Frog()` が変えるのは `refractory_steps=0`・`history_boost=0.0`・`pair_context_capacity=2048`・`pair_context_boost=1.0`・`max_nodes=256` の5項目だけ。他は講座版エンジンの既定値(`probability_mode="softmax"`・温度0.8・`top_k_edges=3`・`max_edge_weight=10`・`weight_decay=0.9995` など)。
+- **研究の107の構成とは別物**(107は linear・`top_k_edges=50`・`max_edge_weight=100`・`weight_decay=1.0`・`normalize_direct_scores=True` など。講座版エンジンには `distribution_backoff_mix` 自体がない)。以前「107型」と書いたのは不正確だった。
+- 既定値の決め方(案): 小さなデモ課題(右右下、故障の系列、じゃんけん など)と選び方の基準を先に書いてから候補を比べ、変な予測が一番少ないものにする。
