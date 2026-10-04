@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="ja" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>リファレンス — cse-frog</title>
+<meta name="description" content="cse-frog リファレンス：全機能・全設定の一覧">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://img.shields.io; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta property="og:title" content="リファレンス — cse-frog">
+<meta property="og:image" content="https://kagioneko.github.io/cse-frog/assets/og.png">
+<link rel="icon" href="../assets/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1+Code:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/docs.css">
+<script src="../js/site.js"></script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="../"><img src="../assets/pixel-icon.png" alt="" width="34" height="34"><b>cse-frog</b></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">メニュー</button>
+    <nav class="nav" id="nav" aria-label="サイト内">
+      <a href="../">トップ</a>
+      <a href="../play.html">ブラウザで飼う</a>
+      <a href="handbook.html" aria-current="page">ドキュメント</a>
+      <a href="https://github.com/kagioneko/cse-frog">GitHub</a>
+    </nav>
+    <button class="theme-btn" type="button" aria-label="明るさを切り替える" title="明るさを切り替える">◐</button>
+  </div>
+</header>
+
+<div class="wrap doc-layout">
+  <aside class="doc-side">
+    <nav class="docnav" aria-label="ドキュメント"><a href="handbook.html">ハンドブック</a>
+<a href="reference.html" aria-current="page">リファレンス</a>
+<a href="config.html">設定ガイド</a></nav>
+    <details class="toc" open>
+      <summary>このページの目次</summary>
+      <ol><li><a href="#frog">Frog</a></li>
+<li><a href="#学習と予測">学習と予測</a></li>
+<li><a href="#中身をのぞく">中身をのぞく</a></li>
+<li><a href="#保存と読み込み">保存と読み込み</a></li>
+<li><a href="#end">END</a></li>
+<li><a href="#設定configの一覧">設定(Config)の一覧</a></li>
+<li><a href="#エラーの一覧">エラーの一覧</a></li></ol>
+    </details>
+  </aside>
+  <main class="doc label-card">
+    <p class="doc-src">このページは <a href="https://github.com/kagioneko/cse-frog/blob/main/docs/REFERENCE.md">GitHub の文書</a> から作っています。</p>
+<h1 id="cse-api-リファレンス-">cse API リファレンス 🐸</h1>
+<p><code>cse</code> 0.0.1.dev0 の全機能の一覧です。説明はすべて、実際のコード(<code>src/cse/__init__.py</code> と <code>src/cse/_engine.py</code>)の動きに合わせています。</p>
+<ul>
+<li><a href="#frog">Frog</a> — 🐸 本体</li>
+<li><a href="#学習と予測">学習と予測</a> — <code>learn</code> / <code>predict</code> / <code>top</code> / <code>probabilities</code></li>
+<li><a href="#中身をのぞく">中身をのぞく</a> — <code>scores</code> / <code>explain</code> / <code>show</code> / <code>edges</code></li>
+<li><a href="#保存と読み込み">保存と読み込み</a> — <code>save</code> / <code>load</code></li>
+<li><a href="#end">END</a> — 系列の終わり</li>
+<li><a href="#設定configの一覧">設定(Config)の一覧</a> — <code>Frog(設定名=値)</code> で変えられる全23項目</li>
+<li><a href="#エラーの一覧">エラーの一覧</a></li>
+</ul>
+<hr />
+<h2 id="frog">Frog</h2>
+<pre><code class="language-python">cse.Frog(**overrides)
+</code></pre>
+<p>🐸 を1匹つくります。設定を変えたいときは <code>Frog(temperature=2.0)</code> のように名前で渡します(全項目は<a href="#設定configの一覧">設定の一覧</a>)。</p>
+<table>
+<thead>
+<tr>
+<th>引数</th>
+<th>型</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>**overrides</code></td>
+<td>設定名=値</td>
+<td>変えたい設定だけを渡す。渡さなかった項目は既定値</td>
+</tr>
+</tbody>
+</table>
+<p><strong>戻り値</strong>: <code>Frog</code></p>
+<p><strong>属性</strong>
+| 名前 | 説明 |
+|---|---|
+| <code>frog.config</code> | 今の設定(<code>CSEConfig</code>)。<code>frog.config.temperature</code> のように読める |</p>
+<p><strong>メモ</strong>
+- 作っても、あなたのプログラムの乱数(<code>random</code> / <code>numpy.random</code>)の状態は変わりません。
+- 同じ <code>Frog</code> を複数のスレッドから同時に使っても安全です(学習と予測は1つずつ順番に処理されます)。</p>
+<pre><code class="language-python">from cse import Frog
+frog = Frog()                          # 既定の設定
+hot = Frog(temperature=2.0)            # 温度だけ変える
+print(frog.config.refractory_steps)    # -&gt; 0
+</code></pre>
+<hr />
+<h2 id="学習と予測">学習と予測</h2>
+<h3 id="learn"><code>learn</code></h3>
+<pre><code class="language-python">frog.learn(data, epochs=3) -&gt; Frog
+</code></pre>
+<p>系列を覚えます。自分自身を返すので <code>Frog().learn(...).predict(...)</code> のようにつなげられます。</p>
+<table>
+<thead>
+<tr>
+<th>引数</th>
+<th>型</th>
+<th>既定</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data</code></td>
+<td>下の3通り</td>
+<td>—</td>
+<td>覚えさせる系列</td>
+</tr>
+<tr>
+<td><code>epochs</code></td>
+<td>int</td>
+<td>3</td>
+<td>同じデータを何周くり返して覚えるか</td>
+</tr>
+</tbody>
+</table>
+<p><code>data</code> の渡し方(<code>predict</code> と同じ考え方):
+| 渡し方 | 例 | 意味 |
+|---|---|---|
+| 文字列1つ | <code>"右右下右右下"</code> | 1本の系列。1文字が1記号 |
+| リスト1つ | <code>["正常", "温度上昇", "停止"]</code> | 1本の系列。1要素が1記号(「停止」は分かれない) |
+| リストのリスト | <code>[["右", "右", "下"], ["正常", "停止"]]</code> | 何本もの系列 |</p>
+<ul>
+<li>記号には文字列のほか、整数・小数・True/False・None なども使えます(保存できるのはこの5種類)。</li>
+<li>各系列の最後には、自動で <code>&lt;END&gt;</code>(終わり)が学習されます。</li>
+<li>注意: <code>weight_decay</code>(既定 0.9995)は<strong>学習の1ステップごとに全部の結びつきにかかる</strong>ので、たくさん学習すると古い記憶が少しずつ薄れます。</li>
+</ul>
+<h3 id="predict"><code>predict</code></h3>
+<pre><code class="language-python">frog.predict(prefix=()) -&gt; 記号 または END
+</code></pre>
+<p><code>prefix</code> の次に一番来そうな記号を1つ返します。<code>prefix</code> を空にすると「最初の記号」を予測します。</p>
+<h3 id="top"><code>top</code></h3>
+<pre><code class="language-python">frog.top(prefix=(), k=3) -&gt; [(記号, 確率), ...]
+</code></pre>
+<p>確率の高い順に <code>k</code> 個返します。</p>
+<h3 id="probabilities"><code>probabilities</code></h3>
+<pre><code class="language-python">frog.probabilities(prefix=()) -&gt; {記号: 確率}
+</code></pre>
+<p>次に来る記号の確率をすべて返します(確率が 0 の記号は含まれません)。合計は 1 です(<code>&lt;START&gt;</code>・<code>&lt;UNK&gt;</code> を除いて割り直しています)。</p>
+<p><strong>確率の作られ方</strong>: 点数(→<a href="#scores"><code>scores</code></a>)の上位 <code>top_k_edges</code> 個だけを、<code>probability_mode</code>(softmax なら温度 <code>temperature</code>)で確率に変えます。点数がプラスの候補が1つもないときは <code>END</code> が確率 1 になります。</p>
+<pre><code class="language-python">frog = Frog().learn([[&quot;右&quot;, &quot;右&quot;, &quot;下&quot;] * 5])
+frog.predict([&quot;右&quot;, &quot;右&quot;])          # -&gt; '下'
+frog.top([&quot;右&quot;, &quot;右&quot;], k=2)         # -&gt; [('下', 0.777...), ('右', 0.222...)]
+</code></pre>
+<hr />
+<h2 id="中身をのぞく">中身をのぞく</h2>
+<h3 id="scores"><code>scores</code></h3>
+<pre><code class="language-python">frog.scores(prefix=()) -&gt; {記号: 点数}
+</code></pre>
+<p>確率に変える<strong>前</strong>の生の点数を、高い順に返します(プラスのものだけ)。Top-p などのサンプラーを自分で作る材料になります。</p>
+<h3 id="explain"><code>explain</code></h3>
+<pre><code class="language-python">frog.explain(prefix=(), k=5) -&gt; [dict, ...]
+</code></pre>
+<p>候補ごとに、点数が「どこから来たか」を返します(点数の高い順に <code>k</code> 個)。</p>
+<table>
+<thead>
+<tr>
+<th>キー</th>
+<th>意味</th>
+<th>0 になる条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>token</code></td>
+<td>候補の記号</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>direct</code></td>
+<td>今の記号からの直接のつながり(学習で強くなった結びつき)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>history</code></td>
+<td>少し前に出た記号の活性の残り × <code>history_boost</code></td>
+<td><code>history_boost=0</code>(既定)</td>
+</tr>
+<tr>
+<td><code>pair</code></td>
+<td>直前2つの並びの記憶 × <code>pair_context_boost</code></td>
+<td>並びを覚えていない、<code>pair_context_boost=0</code></td>
+</tr>
+<tr>
+<td><code>trace</code></td>
+<td>ゆっくり残る文脈の痕跡 × <code>context_projection_boost</code></td>
+<td><code>context_projection_boost=0</code>(既定)</td>
+</tr>
+<tr>
+<td><code>score</code></td>
+<td>合計点(上の4つの和)</td>
+<td>不応期で消されたとき</td>
+</tr>
+<tr>
+<td><code>blocked</code></td>
+<td>不応期で 0 にされたか</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>prob</code></td>
+<td>最終的な確率</td>
+<td>上位 <code>top_k_edges</code> に入らないとき</td>
+</tr>
+</tbody>
+</table>
+<p><strong>保証</strong>: 内訳の合計がエンジン自身の点数とビット単位で一致することを、呼ぶたびに確認しています。ずれたら <code>RuntimeError</code> で止まります(説明が実際の計算とずれることはありません)。</p>
+<h3 id="show"><code>show</code></h3>
+<pre><code class="language-python">frog.show(prefix=(), k=5) -&gt; None
+</code></pre>
+<p><code>explain</code> の結果を表で表示します。</p>
+<pre><code class="language-python">Frog(refractory_steps=2).learn([[&quot;右&quot;, &quot;右&quot;, &quot;下&quot;] * 5]).show([&quot;右&quot;, &quot;右&quot;, &quot;下&quot;])
+# 🐸 ['右', '右', '下'] の次の候補
+# 候補            直接      履歴      並び      痕跡      合計点      確率
+# &lt;END&gt;      0.298   0.000   0.200   0.000    0.498   1.000
+# 右          1.186   0.000   0.800   0.000    0.000   0.000  ← 不応期で消された
+</code></pre>
+<h3 id="edges"><code>edges</code></h3>
+<pre><code class="language-python">frog.edges(token, k=10) -&gt; [(記号, 強さ), ...]
+</code></pre>
+<p>その記号から出ている「直接のつながり」を、強い順に <code>k</code> 個返します(何を覚えたか)。</p>
+<hr />
+<h2 id="保存と読み込み">保存と読み込み</h2>
+<h3 id="save"><code>save</code></h3>
+<pre><code class="language-python">frog.save(path) -&gt; None
+</code></pre>
+<p>覚えたことをファイルに保存します。中身は JSON と数値の配列だけの zip です(<strong>pickle は使いません</strong>。人の 🐸 を読み込んでも安全です)。</p>
+<h3 id="load"><code>load</code></h3>
+<pre><code class="language-python">Frog.load(path) -&gt; Frog
+</code></pre>
+<p><code>save</code> したファイルから 🐸 を読み込みます。読み込んだ 🐸 は、予測も<strong>続きの学習も</strong>、保存する前とビット単位で同じになります。読み込みで、あなたの乱数の状態は変わりません。</p>
+<pre><code class="language-python">frog.save(&quot;my_frog.cse&quot;)
+frog = Frog.load(&quot;my_frog.cse&quot;)
+</code></pre>
+<hr />
+<h2 id="end">END</h2>
+<pre><code class="language-python">cse.END
+</code></pre>
+<p>「ここで系列が終わる」を表す特別な目印です。表示は <code>&lt;END&gt;</code>。あなたの記号(文字列 <code>"&lt;END&gt;"</code> を含む)とはぶつかりません。</p>
+<pre><code class="language-python">if frog.predict(prefix) is END:
+    print(&quot;ここで終わりそう&quot;)
+</code></pre>
+<hr />
+<h2 id="設定configの一覧">設定(Config)の一覧</h2>
+<p><code>Frog(設定名=値)</code> で変えられます。「Frog の既定」は <code>Frog()</code> で作ったときの値、「エンジンの既定」はエンジン本体の値です(<code>Frog</code> は5項目だけ変えています)。</p>
+<h3 id="予測のしかた点数--確率">予測のしかた(点数 → 確率)</h3>
+<table>
+<thead>
+<tr>
+<th>設定</th>
+<th>Frog の既定</th>
+<th>エンジンの既定</th>
+<th>説明</th>
+<th>LLM で似ているもの</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>probability_mode</code></td>
+<td><code>"softmax"</code></td>
+<td><code>"softmax"</code></td>
+<td>点数を確率に変える方法。<code>"softmax"</code>(温度を使う)か <code>"linear"</code>(点数に比例)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>temperature</code></td>
+<td>0.8</td>
+<td>0.8</td>
+<td>softmax の温度。低いほど自信満々(確率が 0 か 1 に張り付きやすい)、高いほど迷う</td>
+<td>temperature</td>
+</tr>
+<tr>
+<td><code>top_k_edges</code></td>
+<td>3</td>
+<td>3</td>
+<td><strong>2つの役割</strong>: ① 確率にする候補を点数の上位 k 個に絞る ② 活性を広げるときに、各記号から強い順に k 本のつながりだけを使う</td>
+<td>Top-k(①の役割)</td>
+</tr>
+<tr>
+<td><code>history_boost</code></td>
+<td><strong>0.0</strong></td>
+<td>0.35</td>
+<td>少し前に出た記号の活性の残りを点数に足す強さ。上げると同じ記号が出やすくなる(研究では生成を崩す方向に効いた)</td>
+<td>(標準ではない)マイナスの presence_penalty、昔のキャッシュ言語モデル</td>
+</tr>
+<tr>
+<td><code>refractory_steps</code></td>
+<td><strong>0</strong></td>
+<td>2</td>
+<td>不応期。直前 n 個に出た記号の点数を 0 にする(完全に禁止)</td>
+<td>繰り返しペナルティ(より極端)</td>
+</tr>
+<tr>
+<td><code>max_consecutive_repeats</code></td>
+<td>2</td>
+<td>2</td>
+<td>不応期の例外: 今の記号から自分自身へのつながりを覚えていれば、同じ記号をこの回数まで連続で許す</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="文脈の記憶">文脈の記憶</h3>
+<table>
+<thead>
+<tr>
+<th>設定</th>
+<th>Frog の既定</th>
+<th>エンジンの既定</th>
+<th>説明</th>
+<th>LLM で似ているもの</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pair_context_capacity</code></td>
+<td><strong>2048</strong></td>
+<td>0</td>
+<td>直前2つの並び(例: 「右右」)を何通り覚えるか。一杯になると、合計が一番弱い並びから忘れる。0 で無効</td>
+<td>コンテキストの長さ(🐸 は2つだけ)</td>
+</tr>
+<tr>
+<td><code>pair_context_boost</code></td>
+<td><strong>1.0</strong></td>
+<td>0.0</td>
+<td>並びの記憶を点数に足す強さ(並びごとに合計 1 に揃えてから掛ける)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>context_trace_decay</code></td>
+<td>0.0</td>
+<td>0.0</td>
+<td>文脈の痕跡が1記号ごとにどれだけ残るか(0 なら直前の1記号だけ)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>context_projection_boost</code></td>
+<td>0.0</td>
+<td>0.0</td>
+<td>文脈の痕跡から、つながりをたどって点数に足す強さ。0 で無効</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="学習のしかた">学習のしかた</h3>
+<table>
+<thead>
+<tr>
+<th>設定</th>
+<th>Frog の既定</th>
+<th>エンジンの既定</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>learning_rate</code></td>
+<td>0.1</td>
+<td>0.1</td>
+<td>1回並んで出るごとに、つながりを強くする量</td>
+</tr>
+<tr>
+<td><code>max_edge_weight</code></td>
+<td>10.0</td>
+<td>10.0</td>
+<td>つながりの強さの上限(並びの記憶にも同じ上限)</td>
+</tr>
+<tr>
+<td><code>weight_decay</code></td>
+<td>0.9995</td>
+<td>0.9995</td>
+<td>学習の1ステップごとに、つながりに掛ける数(1.0 で忘れない)</td>
+</tr>
+<tr>
+<td><code>weight_decay_scope</code></td>
+<td><code>"global"</code></td>
+<td><code>"global"</code></td>
+<td>忘れる範囲。<code>"global"</code>(全部)か <code>"active_rows"</code>(今学習している記号の行だけ)</td>
+</tr>
+<tr>
+<td><code>temporal_learning_window</code></td>
+<td>1</td>
+<td>1</td>
+<td>何個前の記号まで「つながり」を学習するか(1 なら直前だけ)</td>
+</tr>
+<tr>
+<td><code>direct_learning_window</code></td>
+<td>2</td>
+<td>2</td>
+<td>何個前までを「直接のつながり」に入れるか。これより遠いものは文脈のつながり(<code>context_projection_boost</code> で使う)に入る</td>
+</tr>
+<tr>
+<td><code>temporal_learning_decay</code></td>
+<td>0.5</td>
+<td>0.5</td>
+<td>遠い記号ほど学習を弱める割合(1個遠くなるごとに掛ける)</td>
+</tr>
+<tr>
+<td><code>normalize_direct_scores</code></td>
+<td>False</td>
+<td>False</td>
+<td>直接のつながりの点数を、合計 1 に揃えてから使うか</td>
+</tr>
+</tbody>
+</table>
+<h3 id="活性の動き">活性の動き</h3>
+<table>
+<thead>
+<tr>
+<th>設定</th>
+<th>Frog の既定</th>
+<th>エンジンの既定</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>activation_decay</code></td>
+<td>0.6</td>
+<td>0.6</td>
+<td>1ステップごとに、活性に掛ける数(残り方)</td>
+</tr>
+<tr>
+<td><code>threshold</code></td>
+<td>0.05</td>
+<td>0.05</td>
+<td>活性がこれ以上の記号だけが、つながりの先へ活性を広げる</td>
+</tr>
+<tr>
+<td><code>activation_cap</code></td>
+<td>0.0</td>
+<td>0.0</td>
+<td>活性の上限。0 なら数値があふれない安全な上限を自動で使う</td>
+</tr>
+</tbody>
+</table>
+<h3 id="その他">その他</h3>
+<table>
+<thead>
+<tr>
+<th>設定</th>
+<th>Frog の既定</th>
+<th>エンジンの既定</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>max_nodes</code></td>
+<td><strong>256</strong></td>
+<td>50</td>
+<td>覚えられる記号の数の上限 + 3(<code>&lt;START&gt;</code>・<code>&lt;END&gt;</code>・<code>&lt;UNK&gt;</code> の分)。メモリは <code>max_nodes</code> の2乗で増える</td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td>42</td>
+<td>42</td>
+<td>エンジンが作られるときに乱数に使う値。<code>Frog</code> の予測・学習は乱数を使わないので、結果には影響しない</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="エラーの一覧">エラーの一覧</h2>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>例外</th>
+<th>メッセージ(例)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>知らない設定名を渡した</td>
+<td><code>ValueError</code></td>
+<td>知らない設定の名前です: [...]。使える名前: [...]</td>
+</tr>
+<tr>
+<td>覚えていない記号で予測した</td>
+<td><code>ValueError</code></td>
+<td>「ワープ」はまだ覚えていない記号です。learn() で覚えさせてから使ってください。</td>
+</tr>
+<tr>
+<td>記号の数が上限をこえた</td>
+<td><code>ValueError</code></td>
+<td>覚えられる記号の数(253)をこえました。Frog(max_nodes=…) で大きくしてください。</td>
+</tr>
+<tr>
+<td><code>learn</code> にリストとそれ以外をまぜた</td>
+<td><code>ValueError</code></td>
+<td>リストの中に、リストとそれ以外がまざっています。…</td>
+</tr>
+<tr>
+<td>保存できない種類の記号がある</td>
+<td><code>ValueError</code></td>
+<td>保存できない種類の記号があります: [...]</td>
+</tr>
+<tr>
+<td>cse の 🐸 ファイルではない</td>
+<td><code>ValueError</code></td>
+<td>cse の 🐸 ファイルではないか、形式が違います</td>
+</tr>
+<tr>
+<td><code>explain</code> の内訳がエンジンとずれた</td>
+<td><code>RuntimeError</code></td>
+<td>内訳の再計算がエンジンの点数と一致しませんでした(cse のバグです。報告してください)</td>
+</tr>
+</tbody>
+</table>
+  </main>
+</div>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div>cse-frog — MIT License. © 2026 Emilia Lab / 鍵乃ねこ (kagioneko)</div>
+    <nav aria-label="外部リンク">
+      <a href="https://github.com/kagioneko/cse-frog">GitHub</a>
+      <a href="https://pypi.org/project/cse-frog/">PyPI</a>
+      <a href="https://note.com/emilia_lab/n/ne9082f0193a7">紹介記事（note）</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

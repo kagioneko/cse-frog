@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ja" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cse-frog 🐸 — 解剖できる小さな言語モデル</title>
+<meta name="description" content="順番のあるデータを覚えて「次に何が来そうか」を予測する、学習用の小さなAI。中身が全部見えて、壊して学べる。pip install cse-frog">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta property="og:type" content="website">
+<meta property="og:title" content="cse-frog 🐸 — 解剖できる小さな言語モデル">
+<meta property="og:description" content="🐸を1匹飼うと、言語モデルの中身が見える。pip install cse-frog">
+<meta property="og:image" content="https://kagioneko.github.io/cse-frog/assets/og.png">
+<meta property="og:url" content="https://kagioneko.github.io/cse-frog/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1+Code:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/site.css">
+<script src="js/site.js"></script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/pixel-icon.png" alt="" width="34" height="34"><b>cse-frog</b></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">メニュー</button>
+    <nav class="nav" id="nav" aria-label="サイト内">
+      <a href="#why">なぜカエル？</a>
+      <a href="#anatomy">解剖図</a>
+      <a href="#quickstart">はじめる</a>
+      <a href="play.html">ブラウザで飼う</a>
+      <a href="docs/handbook.html">ドキュメント</a>
+      <a href="https://github.com/kagioneko/cse-frog">GitHub</a>
+    </nav>
+    <button class="theme-btn" type="button" aria-label="明るさを切り替える" title="明るさを切り替える">◐</button>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow rise">Chain-Spike Engine ／ 講座版</span>
+      <h1 class="rise d1"><span class="frog">🐸</span>を1匹飼うと、<br><span class="hl">言語モデルの中身</span>が見える。</h1>
+      <p class="lead rise d2">順番のあるデータを覚えて「次に何が来そうか」を予測する、<strong>学習用の小さなAI</strong>です。Pythonの練習や、言語モデルの仕組みを手で触って理解するために作りました。</p>
+      <div class="rise d3">
+        <div class="install"><code>pip install cse-frog</code><button type="button" data-copy="pip install cse-frog">コピー</button></div>
+      </div>
+      <div class="hero-actions rise d4">
+        <a class="btn primary" href="play.html">ブラウザで飼ってみる →</a>
+        <a class="btn" href="docs/handbook.html">ハンドブックを読む</a>
+      </div>
+      <p class="not-llm rise d4"><b>※</b><span>これはLLMの代わりではありません。中身が全部見えて、壊して学べることが目的です。</span></p>
+    </div>
+
+    <div class="specimen">
+      <div class="board label-card tape">
+        <img class="logo-light" src="assets/logo.webp" alt="CSE のマスコット：リュックを背負ったカエル" width="800" height="800">
+        <img class="logo-dark" src="assets/logo-dark.webp" alt="CSE のマスコット：リュックを背負ったカエル" width="467" height="542">
+      </div>
+      <div class="callout l c1">① 覚える<small>ヘブ則で結びつきが強くなる</small></div>
+      <div class="callout r c2">② 点数<small>直接・履歴・並び・痕跡</small></div>
+      <div class="callout l c3">③ 確率<small>softmax / linear</small></div>
+      <div class="callout r c4">④ 選ぶ<small>ここは自分で作る！</small></div>
+      <div class="tag-no">SPECIMEN — cse-frog v0.1.0<br>MIT License</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">WHY A FROG</span>
+      <h2>解剖用の「LMの素体」</h2>
+    </div>
+    <div class="why">
+      <blockquote class="label-card tape reveal">
+        <p>理科の授業でカエルを解剖するのは、カエルが一番強いからではなく、<strong>体のつくりが一通りそろっていて、しかも見やすいから</strong>です。</p>
+        <p>cse も同じで、言語モデルの基本の流れ（覚える → 点数 → 確率 → 選ぶ）を一通り持った、<strong>全部開いて見られる小さな体</strong>です。</p>
+        <cite>— README より</cite>
+      </blockquote>
+      <ol class="why-points reveal">
+        <li><div><b>体のつくりが一通りそろっている</b><span>覚える・点数をつける・確率にする・選ぶ。大きなLLMと同じ流れを、小さく全部持っています。</span></div></li>
+        <li><div><b>全部開いて見られる</b><span>「どこで・なぜその予測をしたか」を、候補ごとの点数の内訳として数字で見られます。</span></div></li>
+        <li><div><b>わざと外してある部品がある</b><span>アテンションや勾配降下は持っていません。それは「次に自分で組む部品」です。</span></div></li>
+        <li><div><b>何度解剖しても大丈夫</b><span>壊れても <code>Frog()</code> でもう1匹出てきます。</span></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="anatomy">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">ANATOMY CHART</span>
+      <h2>解剖図 — LMの臓器と、🐸の臓器</h2>
+      <p>右の列の「本物の臓器」が何のためにあるのかを、まん中の小さな体で先に触って理解できます。</p>
+    </div>
+    <div class="anatomy label-card reveal">
+      <div class="anatomy-row head"><div>LMの臓器</div><div>🐸 CSE では</div><div>大きな LLM では</div></div>
+      <div class="anatomy-row"><div class="organcell organ"><i>1</i>入力を記号にする</div><div class="frogcol">1文字＝1記号（<code>Frog</code> なら1要素＝1記号）</div><div class="llmcol">トークナイザー</div></div>
+      <div class="anatomy-row"><div class="organcell organ"><i>2</i>覚える</div><div class="frogcol">ヘブ則で結びつきが強くなる</div><div class="llmcol">勾配降下で重みを直す</div></div>
+      <div class="anatomy-row"><div class="organcell organ"><i>3</i>文脈を持つ</div><div class="frogcol">活性の残り・直前2つの並び</div><div class="llmcol">アテンション</div></div>
+      <div class="anatomy-row"><div class="organcell organ"><i>4</i>予測する</div><div class="frogcol">点数 → softmax / linear で確率に</div><div class="llmcol">logits → softmax</div></div>
+      <div class="anatomy-row"><div class="organcell organ"><i>5</i>抑える</div><div class="frogcol">不応期</div><div class="llmcol">繰り返しペナルティ</div></div>
+      <div class="anatomy-row diy"><div class="organcell organ"><i>6</i>選ぶ</div><div class="frogcol">（自分で作る！ Top-p など）</div><div class="llmcol">サンプラー</div></div>
+    </div>
+    <p class="anatomy-foot reveal">たとえば 🐸 の文脈は直前2つまでしか見えません。だから大きな LLM は、遠くを見るためにアテンションを持っています。<br><strong>立ち位置：</strong>数え上げ（n-gram）より動く部分が多く（発火・伝播・減衰・不応期）、LLM より中身が見える。</p>
+  </div>
+</section>
+
+<section class="sec" id="peek">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">LOOK INSIDE</span>
+      <h2>予測の「内訳」が全部見える</h2>
+      <p>大きなLLMではできない、「どこで・なぜその予測をしたか」を数字で見られます。下は「右右下」を5回くり返して覚えさせた 🐸 に、「右右下」の次を聞いた結果です（本物の出力）。</p>
+    </div>
+    <ol class="pipeline reveal">
+      <li><b>覚える</b><span>並びを見せると、続いて出た記号どうしの結びつきが強くなる</span></li>
+      <li><b>点数</b><span>直接のつながり＋履歴＋直前2つの並び＋文脈の痕跡</span></li>
+      <li><b>確率</b><span>上位の候補の点数を softmax / linear で確率に変える</span></li>
+      <li><b>選ぶ</b><span>どう選ぶかは、あなたが作る部品</span></li>
+    </ol>
+    <div class="peek">
+      <div class="explain-card label-card reveal">
+        <h3><code>Frog()</code> — 素直な設定</h3>
+        <div class="bars">
+          <div class="bar-row"><span class="tok">右</span><div class="bar-track"><span class="seg-direct" data-w="59.3"></span><span class="seg-pair" data-w="40"></span></div><span class="prob">0.865</span></div>
+          <div class="bar-row"><span class="tok">&lt;END&gt;</span><div class="bar-track"><span class="seg-direct" data-w="14.9"></span><span class="seg-pair" data-w="10"></span></div><span class="prob">0.135</span></div>
+        </div>
+        <div class="legend"><span><i class="seg-direct"></i>直接</span><span><i class="seg-history"></i>履歴</span><span><i class="seg-pair"></i>並び</span><span><i class="seg-trace"></i>痕跡</span><span>右端の数字＝確率</span></div>
+      </div>
+      <div class="explain-card label-card reveal">
+        <h3><code>Frog(refractory_steps=2)</code> — 不応期あり</h3>
+        <div class="bars">
+          <div class="bar-row"><span class="tok">&lt;END&gt;</span><div class="bar-track"><span class="seg-direct" data-w="14.9"></span><span class="seg-pair" data-w="10"></span></div><span class="prob">1.000</span></div>
+          <div class="bar-row blocked"><span class="tok">右</span><div class="bar-track"><span class="seg-direct" data-w="59.3"></span><span class="seg-pair" data-w="40"></span></div><span class="prob">0.000</span><span class="blocked-note">← 直前に出たので、不応期で消された</span></div>
+        </div>
+        <div class="legend"><span>点数は高いのに、直前に出た「右」は出せない。だから「ここで終わり」になる。</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="knobs">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">KNOBS</span>
+      <h2>いじる設定 ↔ LLM で似ているもの</h2>
+      <p><code>Frog(設定名=値)</code> で変えて、<code>frog.show(...)</code> で点数と確率の変化を見てみてください。あくまで「似た働き」です。違いも含めて比べるのがおすすめです。</p>
+    </div>
+    <div class="knobs">
+      <div class="knob label-card reveal"><span class="name">temperature</span><span class="llm">temperature（そのまま同じ！）</span><p>下げると自信満々、上げると迷いがち。</p></div>
+      <div class="knob label-card reveal"><span class="name">top_k_edges</span><span class="llm">Top-k</span><p>確率にする候補を上位 k 個に絞る。活性を広げるときも、各記号から強い順に k 本のつながりだけを使う。</p></div>
+      <div class="knob label-card reveal"><span class="name">refractory_steps</span><span class="llm">繰り返しペナルティ</span><p>同じ記号を続けて出さなくなる。点数を下げるのではなく完全に禁止するので、ペナルティより極端。</p></div>
+      <div class="knob label-card reveal"><span class="name">pair_context_capacity / pair_context_boost</span><span class="llm">コンテキストの長さ</span><p>🐸 は直前2つまで。0 にすると「右右 → 下」が覚えられない。</p></div>
+      <div class="knob label-card reveal"><span class="name">max_nodes</span><span class="llm">語彙サイズ</span><p>覚えられる記号の数。メモリは max_nodes の2乗で増える。</p></div>
+      <div class="knob label-card reveal"><span class="name">history_boost</span><span class="llm">マイナスの presence_penalty / キャッシュ言語モデル</span><p>少し前に出た記号が出やすくなる。研究では、生成を崩す方向に効いていた。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="quickstart">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">QUICK START</span>
+      <h2>5行で1匹</h2>
+    </div>
+    <div class="qs">
+      <div class="reveal">
+        <div class="install"><code>pip install cse-frog</code><button type="button" data-copy="pip install cse-frog">コピー</button></div>
+        <ul>
+          <li>使うときの名前は <code>from cse import Frog</code> です。</li>
+          <li><code>learn()</code> には、文字列 <code>"右右下"</code>（1文字＝1記号）、リスト <code>["正常", "温度上昇", "停止"]</code>（1要素＝1記号）、リストのリストを渡せます。</li>
+          <li><code>predict()</code> が <code>&lt;END&gt;</code> を返したら「ここで系列が終わりそう」という意味です。</li>
+          <li>保存したファイルは JSON と数値の配列だけ。pickle は使わないので、人の 🐸 を読み込んでも安全です。</li>
+        </ul>
+      </div>
+      <pre class="code reveal"><code><span class="k">from</span> cse <span class="k">import</span> Frog
+frog = Frog()                                <span class="c"># 🐸 を1匹つくる</span>
+frog.learn([[<span class="s">"右"</span>, <span class="s">"右"</span>, <span class="s">"下"</span>]] * 10)         <span class="c"># 行動の系列を覚えさせる</span>
+print(frog.predict([<span class="s">"右"</span>, <span class="s">"右"</span>]))             <span class="c"># -&gt; 下</span>
+print(frog.top([<span class="s">"右"</span>], k=2))                 <span class="c"># 確率の高い順に2つ</span>
+
+frog.show([<span class="s">"右"</span>, <span class="s">"右"</span>, <span class="s">"下"</span>])                <span class="c"># 点数の内訳を表で見る</span>
+frog.save(<span class="s">"my_frog.cse"</span>)                      <span class="c"># 覚えたことを保存</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="limits">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">HONEST LIMITS</span>
+      <h2>正直な限界</h2>
+      <p>予測の精度では数え上げに負けることもあります。それも含めて全部見せるのが、この 🐸 の役目です。</p>
+    </div>
+    <div class="limits label-card reveal">
+      <span class="stamp">正直</span>
+      <ol>
+        <li><strong>局所的な予測器です。</strong>既定の設定では、基本的に「今の記号」と「直前2つの並び」から次を予測します。n-gram（数え上げ）に近い性質です。</li>
+        <li>研究（Chain-Spike Engine の検証）では、古典的な評価軸（精度・メモリ・速度・較正など）で、n-gram などの既存手法に対する<strong>比較優位は見つかりませんでした</strong>。遠くの文脈を使う問題（検索など）は苦手です。</li>
+        <li>エンジンは本来<strong>文字単位</strong>です。<code>Frog</code> は単語などの記号を内部で1文字に置き換えて、この制約を吸収しています。</li>
+        <li>既定の設定は、素直に予測するための設定です。<code>Frog(refractory_steps=2)</code> のように変えると、元の仕組み（不応期）の挙動を観察できます。</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="notebooks">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">NOTEBOOKS</span>
+      <h2>ノートブックで遊ぶ</h2>
+      <p>Google Colab でそのまま開けます。</p>
+    </div>
+    <div class="notebooks">
+      <a class="nb label-card reveal" href="https://colab.research.google.com/github/kagioneko/cse-frog/blob/main/notebooks/00_hello_frog.ipynb"><span class="num">00</span><b>hello_frog</b><span>🐸を作る・覚えさせる・中を見る・保存する</span><em>Colab で開く →</em></a>
+      <a class="nb label-card reveal" href="https://colab.research.google.com/github/kagioneko/cse-frog/blob/main/notebooks/01_prediction_knobs.ipynb"><span class="num">01</span><b>prediction_knobs</b><span>temperature / probability_mode / top_k_edges</span><em>Colab で開く →</em></a>
+      <a class="nb label-card reveal" href="https://colab.research.google.com/github/kagioneko/cse-frog/blob/main/notebooks/02_context_and_inhibition.ipynb"><span class="num">02</span><b>context_and_inhibition</b><span>並びの記憶 / 不応期 / history_boost</span><em>Colab で開く →</em></a>
+      <a class="nb label-card reveal" href="https://colab.research.google.com/github/kagioneko/cse-frog/blob/main/notebooks/03_memory_and_forgetting.ipynb"><span class="num">03</span><b>memory_and_forgetting</b><span>忘却の2つの罠 / 並びの記憶は忘れない / 遠くを学ぶ</span><em>Colab で開く →</em></a>
+      <a class="nb label-card reveal" href="https://colab.research.google.com/github/kagioneko/cse-frog/blob/main/notebooks/04_break_your_frog.ipynb"><span class="num">04</span><b>break_your_frog</b><span>壊し放題実験場・「何も変わらない」の診断器・自作top-p</span><em>Colab で開く →</em></a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="wrap">
+    <img src="assets/pixel-banner.webp" alt="ドット絵の CSE カエル" width="467" height="242">
+    <div>
+      <h2>インストールなしで、いま飼える。</h2>
+      <p>ブラウザの中で本物の cse-frog が動きます。何も送信しません。</p>
+      <a class="btn primary" href="play.html">ブラウザで飼ってみる →</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div>cse-frog — MIT License. © 2026 Emilia Lab / 鍵乃ねこ (kagioneko)</div>
+    <nav aria-label="外部リンク">
+      <a href="https://github.com/kagioneko/cse-frog">GitHub</a>
+      <a href="https://pypi.org/project/cse-frog/">PyPI</a>
+      <a href="https://note.com/emilia_lab/n/ne9082f0193a7">紹介記事（note）</a>
+      <a href="https://github.com/sponsors/kagioneko">応援する（Sponsors）</a>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>

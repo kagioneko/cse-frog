@@ -1,0 +1,1519 @@
+<!doctype html>
+<html lang="ja" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>設定ガイド — cse-frog</title>
+<meta name="description" content="cse-frog 設定ガイド：設定をいじると何が起こるか">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://img.shields.io; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta property="og:title" content="設定ガイド — cse-frog">
+<meta property="og:image" content="https://kagioneko.github.io/cse-frog/assets/og.png">
+<link rel="icon" href="../assets/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1+Code:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/docs.css">
+<script src="../js/site.js"></script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="../"><img src="../assets/pixel-icon.png" alt="" width="34" height="34"><b>cse-frog</b></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">メニュー</button>
+    <nav class="nav" id="nav" aria-label="サイト内">
+      <a href="../">トップ</a>
+      <a href="../play.html">ブラウザで飼う</a>
+      <a href="handbook.html" aria-current="page">ドキュメント</a>
+      <a href="https://github.com/kagioneko/cse-frog">GitHub</a>
+    </nav>
+    <button class="theme-btn" type="button" aria-label="明るさを切り替える" title="明るさを切り替える">◐</button>
+  </div>
+</header>
+
+<div class="wrap doc-layout">
+  <aside class="doc-side">
+    <nav class="docnav" aria-label="ドキュメント"><a href="handbook.html">ハンドブック</a>
+<a href="reference.html">リファレンス</a>
+<a href="config.html" aria-current="page">設定ガイド</a></nav>
+    <details class="toc" open>
+      <summary>このページの目次</summary>
+      <ol><li><a href="#0-このguideの目的">0. このGuideの目的</a></li>
+<li><a href="#1-重要configには前提スイッチがある">1. 重要：Configには「前提スイッチ」がある</a></li>
+<li><a href="#2-prerequisite-map">2. Prerequisite Map</a></li>
+<li><a href="#3-config-map">3. Config Map</a></li>
+<li><a href="#4-全23config早見表">4. 全23Config早見表</a></li>
+<li><a href="#5-probability_mode">5. probability_mode</a></li>
+<li><a href="#6-temperature">6. temperature</a></li>
+<li><a href="#7-top_k_edges">7. top_k_edges</a></li>
+<li><a href="#8-history_boost">8. history_boost</a></li>
+<li><a href="#9-refractory_steps">9. refractory_steps</a></li>
+<li><a href="#10-max_consecutive_repeats">10. max_consecutive_repeats</a></li>
+<li><a href="#11-pair_context_capacity">11. pair_context_capacity</a></li>
+<li><a href="#12-pair_context_boost">12. pair_context_boost</a></li>
+<li><a href="#13-context_trace_decay">13. context_trace_decay</a></li>
+<li><a href="#14-context_projection_boost">14. context_projection_boost</a></li>
+<li><a href="#15-learning_rate">15. learning_rate</a></li>
+<li><a href="#16-max_edge_weight">16. max_edge_weight</a></li>
+<li><a href="#17-weight_decay">17. weight_decay</a></li>
+<li><a href="#18-weight_decay_scope">18. weight_decay_scope</a></li>
+<li><a href="#19-temporal_learning_window">19. temporal_learning_window</a></li>
+<li><a href="#20-direct_learning_window">20. direct_learning_window</a></li>
+<li><a href="#21-temporal_learning_decay">21. temporal_learning_decay</a></li>
+<li><a href="#22-normalize_direct_scores">22. normalize_direct_scores</a></li>
+<li><a href="#23-activation_decay">23. activation_decay</a></li>
+<li><a href="#24-threshold">24. threshold</a></li>
+<li><a href="#25-activation_cap">25. activation_cap</a></li>
+<li><a href="#26-max_nodes">26. max_nodes</a></li>
+<li><a href="#27-seed">27. seed</a></li>
+<li><a href="#28-config-dependency-graph">28. Config Dependency Graph</a></li>
+<li><a href="#29-何も変わらないには2種類ある">29. 「何も変わらない」には2種類ある</a></li>
+<li><a href="#30-recommended-experiment-pack">30. Recommended Experiment Pack</a></li>
+<li><a href="#31-実験するときのチェックリスト">31. 実験するときのチェックリスト</a></li>
+<li><a href="#32-config-difficulty">32. Config Difficulty</a></li>
+<li><a href="#33-23-config-checklist">33. 23 Config Checklist</a></li>
+<li><a href="#closing">Closing</a></li></ol>
+    </details>
+  </aside>
+  <main class="doc label-card">
+    <p class="doc-src">このページは <a href="https://github.com/kagioneko/cse-frog/blob/main/docs/CONFIG_GUIDE.md">GitHub の文書</a> から作っています。</p>
+<h1 id="cse-config-modding-guide-️">CSE Config Modding Guide 🐸🎛️</h1>
+<h2 id="23-parameters-to-tune-break-and-study">23 Parameters to Tune, Break, and Study</h2>
+<p><strong>Version:</strong> Draft 0.2
+<strong>Target:</strong> CSE Course Edition / <code>Frog</code>
+<strong>Companion:</strong> <a href="handbook.html"><code>HANDBOOK.md</code></a> Draft 0.4 / <a href="reference.html"><code>REFERENCE.md</code></a></p>
+<hr />
+<h1 id="0-このguideの目的">0. このGuideの目的</h1>
+<p>CSEには23個のConfigがあります。</p>
+<p>API Referenceは、</p>
+<blockquote>
+<p><strong>「この設定は何をするか」</strong></p>
+</blockquote>
+<p>を説明します。</p>
+<p>このModding Guideは、</p>
+<blockquote>
+<p><strong>「いじると何が起こるか」</strong>
+<strong>「どのスイッチをONにすると効き始めるか」</strong>
+<strong>「どこまでいじると壊れるか」</strong>
+<strong>「何を観察すると面白いか」</strong></p>
+</blockquote>
+<p>を扱います。</p>
+<p>各Configを、</p>
+<table>
+<thead>
+<tr>
+<th>観点</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>低くすると</strong></td>
+<td>値を小さくしたときの方向</td>
+</tr>
+<tr>
+<td><strong>高くすると</strong></td>
+<td>値を大きくしたときの方向</td>
+</tr>
+<tr>
+<td><strong>Prerequisite</strong></td>
+<td>その設定が予測へ効くための前提条件</td>
+</tr>
+<tr>
+<td><strong>何が壊れる？</strong></td>
+<td>極端な設定で起こりうること</td>
+</tr>
+<tr>
+<td><strong>おすすめ実験</strong></td>
+<td>効果を見るための教材実験</td>
+</tr>
+<tr>
+<td><strong>Evidence</strong></td>
+<td>実装・講座版実験・研究版実験の根拠</td>
+</tr>
+</tbody>
+</table>
+<p>で見ていきます。</p>
+<p>Evidence LabelはHandbookと共通です。</p>
+<p><strong>[CODE]</strong> 実コード
+<strong>[DOC]</strong> README / REFERENCE
+<strong>[EXP-C]</strong> Course Editionで確認
+<strong>[EXP-R]</strong> Research Editionで確認
+<strong>[IDEA]</strong> 未検証の実験案</p>
+<hr />
+<h1 id="1-重要configには前提スイッチがある">1. 重要：Configには「前提スイッチ」がある</h1>
+<p>[CODE][EXP-C]</p>
+<p>CSEのConfigは、すべてが独立して働くわけではありません。</p>
+<p>例えば、</p>
+<pre><code class="language-text">activation_decay
+</code></pre>
+<p>を変更しても、Frogの標準設定では予測が変わりません。</p>
+<p>なぜなら、</p>
+<pre><code class="language-text">activation
+ ↓
+history term
+ ↓
+candidate score
+</code></pre>
+<p>という経路でしかactivationが予測scoreへ入らないのに、</p>
+<pre><code class="language-text">history_boost = 0
+</code></pre>
+<p>がFrogの既定だからです。</p>
+<p>つまり、</p>
+<blockquote>
+<p><strong>部品は動いていても、その出力先のスイッチがOFFなら最終予測には届かない。</strong></p>
+</blockquote>
+<p>これはCSEの構造を理解するうえで重要です。</p>
+<hr />
+<h1 id="2-prerequisite-map">2. Prerequisite Map</h1>
+<p>[CODE][EXP-C]</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Frog既定で効きにくい理由</th>
+<th>効き始める条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>activation_decay</code></td>
+<td>activationがscoreへ入るhistory経路がOFF</td>
+<td><code>history_boost &gt; 0</code></td>
+</tr>
+<tr>
+<td><code>threshold</code></td>
+<td>同上</td>
+<td><code>history_boost &gt; 0</code></td>
+</tr>
+<tr>
+<td><code>activation_cap</code></td>
+<td>同上</td>
+<td><code>history_boost &gt; 0</code></td>
+</tr>
+<tr>
+<td><code>top_k_edges</code>の<strong>spreading側</strong></td>
+<td>propagation結果がhistory経由でscoreへ入らない</td>
+<td><code>history_boost &gt; 0</code></td>
+</tr>
+<tr>
+<td><code>max_consecutive_repeats</code></td>
+<td>refractoryの例外規則だから</td>
+<td><code>refractory_steps &gt; 0</code></td>
+</tr>
+<tr>
+<td><code>context_trace_decay</code></td>
+<td>Trace単体ではscoreへ入らない</td>
+<td><code>context_projection_boost &gt; 0</code></td>
+</tr>
+<tr>
+<td><code>temporal_learning_decay</code></td>
+<td>距離2以上を学ばないと距離減衰が発生しない</td>
+<td><code>temporal_learning_window &gt;= 2</code></td>
+</tr>
+<tr>
+<td><code>direct_learning_window</code></td>
+<td>距離2以上を学ばないと境界の意味がない</td>
+<td><code>temporal_learning_window &gt;= 2</code></td>
+</tr>
+</tbody>
+</table>
+<p>さらに<code>top_k_edges</code>には別の仕事があります。</p>
+<p>候補確率を上位K個へ絞る機能は、</p>
+<blockquote>
+<p><strong>positive candidateがK個を超えたとき</strong></p>
+</blockquote>
+<p>に初めて違いが表面化します。</p>
+<p>つまり同じConfigでも、</p>
+<pre><code class="language-text">top_k_edges
+├─ candidate limiting
+└─ activation spreading
+</code></pre>
+<p>で発動条件が異なります。</p>
+<hr />
+<h1 id="3-config-map">3. Config Map</h1>
+<pre><code class="language-text">Prediction
+├─ probability_mode
+├─ temperature
+├─ top_k_edges
+├─ history_boost
+├─ refractory_steps
+└─ max_consecutive_repeats
+
+Context
+├─ pair_context_capacity
+├─ pair_context_boost
+├─ context_trace_decay
+└─ context_projection_boost
+
+Learning
+├─ learning_rate
+├─ max_edge_weight
+├─ weight_decay
+├─ weight_decay_scope
+├─ temporal_learning_window
+├─ direct_learning_window
+├─ temporal_learning_decay
+└─ normalize_direct_scores
+
+Activation
+├─ activation_decay
+├─ threshold
+└─ activation_cap
+
+System
+├─ max_nodes
+└─ seed
+</code></pre>
+<hr />
+<h1 id="4-全23config早見表">4. 全23Config早見表</h1>
+<table>
+<thead>
+<tr>
+<th>Config</th>
+<th style="text-align: right;">Frog既定</th>
+<th>低くすると</th>
+<th>高くすると</th>
+<th>Prerequisite / 注意</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>probability_mode</code></td>
+<td style="text-align: right;"><code>"softmax"</code></td>
+<td>—</td>
+<td>—</td>
+<td>Top-<code>top_k_edges</code>候補だけを確率化</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>temperature</code></td>
+<td style="text-align: right;"><code>0.8</code></td>
+<td>分布が尖る</td>
+<td>平坦化</td>
+<td><code>softmax</code>時のみ</td>
+<td>[EXP-C]</td>
+</tr>
+<tr>
+<td><code>top_k_edges</code></td>
+<td style="text-align: right;"><code>3</code></td>
+<td>候補・伝播を絞る</td>
+<td>多く残す</td>
+<td>spreadingは<code>history_boost&gt;0</code>で予測へ反映。候補制限はpositive候補&gt;Kで発動</td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td><code>history_boost</code></td>
+<td style="text-align: right;"><code>0.0</code></td>
+<td>履歴効果減少</td>
+<td>最近の記号を押し上げる</td>
+<td>これ自体がactivation系の主スイッチ</td>
+<td>[EXP-C][EXP-R]</td>
+</tr>
+<tr>
+<td><code>refractory_steps</code></td>
+<td style="text-align: right;"><code>0</code></td>
+<td>禁止範囲減少</td>
+<td>過去記号を長く禁止</td>
+<td>—</td>
+<td>[EXP-C]</td>
+</tr>
+<tr>
+<td><code>max_consecutive_repeats</code></td>
+<td style="text-align: right;"><code>2</code></td>
+<td>反復を早く止める</td>
+<td>反復を許す</td>
+<td><code>refractory_steps&gt;0</code></td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td><code>pair_context_capacity</code></td>
+<td style="text-align: right;"><code>2048</code></td>
+<td>Pair減少</td>
+<td>Pair増加</td>
+<td>0で無効</td>
+<td>[EXP-C]</td>
+</tr>
+<tr>
+<td><code>pair_context_boost</code></td>
+<td style="text-align: right;"><code>1.0</code></td>
+<td>Pair影響減少</td>
+<td>Pair影響増加</td>
+<td>Pairは合計1へ正規化後に加算</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>context_trace_decay</code></td>
+<td style="text-align: right;"><code>0.0</code></td>
+<td>痕跡が早く消える</td>
+<td>長く残る</td>
+<td><code>context_projection_boost&gt;0</code></td>
+<td>[EXP-C][EXP-R]</td>
+</tr>
+<tr>
+<td><code>context_projection_boost</code></td>
+<td style="text-align: right;"><code>0.0</code></td>
+<td>Trace影響減少</td>
+<td>Trace影響増加</td>
+<td>既存positive候補だけへ加算</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>learning_rate</code></td>
+<td style="text-align: right;"><code>0.1</code></td>
+<td>学習遅い</td>
+<td>学習速い</td>
+<td>—</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>max_edge_weight</code></td>
+<td style="text-align: right;"><code>10.0</code></td>
+<td>早く飽和</td>
+<td>大きなweight許可</td>
+<td>—</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>weight_decay</code></td>
+<td style="text-align: right;"><code>0.9995</code></td>
+<td>direct/context忘却が速い</td>
+<td>1.0で減衰なし</td>
+<td><strong>Pair memoryは減衰しない</strong></td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td><code>weight_decay_scope</code></td>
+<td style="text-align: right;"><code>"global"</code></td>
+<td>—</td>
+<td>—</td>
+<td>direct/context weightの減衰範囲</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>temporal_learning_window</code></td>
+<td style="text-align: right;"><code>1</code></td>
+<td>近距離のみ</td>
+<td>遠距離も学習</td>
+<td>—</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>direct_learning_window</code></td>
+<td style="text-align: right;"><code>2</code></td>
+<td>direct範囲縮小</td>
+<td>direct範囲拡大</td>
+<td><code>temporal_learning_window&gt;=2</code></td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>temporal_learning_decay</code></td>
+<td style="text-align: right;"><code>0.5</code></td>
+<td>遠距離を弱く学習</td>
+<td>遠距離も強く学習</td>
+<td><code>temporal_learning_window&gt;=2</code></td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>normalize_direct_scores</code></td>
+<td style="text-align: right;"><code>False</code></td>
+<td>—</td>
+<td>—</td>
+<td>Trueでdirect行を合計1へ正規化</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td><code>activation_decay</code></td>
+<td style="text-align: right;"><code>0.6</code></td>
+<td>活性が早く消える</td>
+<td>長く残る</td>
+<td><code>history_boost&gt;0</code></td>
+<td>[EXP-C]</td>
+</tr>
+<tr>
+<td><code>threshold</code></td>
+<td style="text-align: right;"><code>0.05</code></td>
+<td>弱い活性も伝播</td>
+<td>強い活性だけ伝播</td>
+<td><code>history_boost&gt;0</code></td>
+<td>[EXP-C]</td>
+</tr>
+<tr>
+<td><code>activation_cap</code></td>
+<td style="text-align: right;"><code>0.0</code></td>
+<td>小さいcapでclip</td>
+<td>大きいcap</td>
+<td><code>history_boost&gt;0</code></td>
+<td>[EXP-C]</td>
+</tr>
+<tr>
+<td><code>max_nodes</code></td>
+<td style="text-align: right;"><code>256</code></td>
+<td>軽量・語彙減</td>
+<td>語彙増・RAM増</td>
+<td>memory ≈ O(N²)</td>
+<td>[CODE][DOC]</td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td style="text-align: right;"><code>42</code></td>
+<td>—</td>
+<td>—</td>
+<td>deterministic Frog APIでは通常影響なし</td>
+<td>[CODE][DOC]</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="5-probability_mode">5. <code>probability_mode</code></h1>
+<p><strong>Default:</strong> <code>"softmax"</code></p>
+<p>[CODE][DOC]</p>
+<pre><code class="language-python">Frog(probability_mode=&quot;softmax&quot;)
+Frog(probability_mode=&quot;linear&quot;)
+</code></pre>
+<p>どちらの場合も、まずcandidate scoreが計算されます。</p>
+<p>そして、</p>
+<blockquote>
+<p><strong>positive scoreの上位<code>top_k_edges</code>候補だけ</strong></p>
+</blockquote>
+<p>が確率化されます。</p>
+<p>つまり、</p>
+<pre><code class="language-text">scores
+ ↓
+Top-K candidate selection
+ ↓
+softmax OR linear normalization
+</code></pre>
+<p>です。</p>
+<h2 id="softmax">softmax</h2>
+<pre><code class="language-text">score / temperature
+ ↓
+exp()
+ ↓
+normalize
+</code></pre>
+<h2 id="linear">linear</h2>
+<pre><code class="language-text">score
+ ↓
+normalize
+</code></pre>
+<h3 id="注意">注意</h3>
+<p><code>linear</code>にするとTop-Kが無効になるわけではありません。</p>
+<p><strong>softmaxでもlinearでもTop-K candidate selectionは先に行われます。</strong></p>
+<h3 id="おすすめ実験">おすすめ実験</h3>
+<p>同じ<code>scores()</code>に対して、</p>
+<pre><code class="language-text">softmax
+vs
+linear
+</code></pre>
+<p>の<code>probabilities()</code>を比較。</p>
+<hr />
+<h1 id="6-temperature">6. <code>temperature</code></h1>
+<p><strong>Default:</strong> <code>0.8</code></p>
+<p>[CODE][EXP-C]</p>
+<p><code>probability_mode="softmax"</code>時のみ有効です。</p>
+<h2 id="低くすると">低くすると</h2>
+<p>確率分布が尖ります。</p>
+<h2 id="高くすると">高くすると</h2>
+<p>分布が平坦化します。</p>
+<p>[EXP-C]</p>
+<pre><code class="language-text">0.05 → 下 ≈ 1.0
+10.0 → 下 ≈ 0.525
+</code></pre>
+<h3 id="prerequisite">Prerequisite</h3>
+<pre><code class="language-text">probability_mode = &quot;softmax&quot;
+</code></pre>
+<p><code>linear</code>ではtemperatureは使われません。</p>
+<h3 id="おすすめ実験_1">おすすめ実験</h3>
+<pre><code class="language-text">0.05
+0.2
+0.8
+2
+10
+</code></pre>
+<p>を比較。</p>
+<hr />
+<h1 id="7-top_k_edges">7. <code>top_k_edges</code></h1>
+<p><strong>Default:</strong> <code>3</code></p>
+<p>[CODE]</p>
+<p>CSEで最も注意が必要な名前の一つです。</p>
+<p>二つの役割があります。</p>
+<h2 id="a-candidate-limiting">A. Candidate Limiting</h2>
+<p>positive candidateのうち、上位K個だけを確率化します。</p>
+<p>これは、</p>
+<pre><code class="language-text">positive candidates &gt; top_k_edges
+</code></pre>
+<p>のときに初めて結果差が出ます。</p>
+<h2 id="b-activation-spreading">B. Activation Spreading</h2>
+<p>各Nodeから活性を広げるとき、強いK本のEdgeだけを使用します。</p>
+<h3 id="prerequisite_1">Prerequisite</h3>
+<p>[EXP-C]</p>
+<p>Frog既定では、</p>
+<pre><code class="language-text">history_boost = 0
+</code></pre>
+<p>なので、activation propagationを変えても、その差がcandidate scoreへ入りません。</p>
+<p>Spreading側の効果を見るなら、</p>
+<pre><code class="language-python">Frog(
+    history_boost=0.35,
+    top_k_edges=...
+)
+</code></pre>
+<p>のようにする必要があります。</p>
+<h3 id="何が壊れる">何が壊れる？</h3>
+<p>Kが小さすぎる:</p>
+<blockquote>
+<p>有望な候補や伝播経路を早期に切る。</p>
+</blockquote>
+<p>Kが大きすぎる:</p>
+<blockquote>
+<p>弱い候補やEdgeも残る。</p>
+</blockquote>
+<hr />
+<h1 id="8-history_boost">8. <code>history_boost</code></h1>
+<p><strong>Frog default:</strong> <code>0.0</code>
+<strong>Engine default:</strong> <code>0.35</code></p>
+<p>[CODE]</p>
+<p>activation historyをcandidate scoreへ足す倍率です。</p>
+<p>このConfigはactivation系設定の<strong>主電源</strong>に近い存在です。</p>
+<pre><code class="language-text">activation
+ ↓
+× history_boost
+ ↓
+candidate score
+</code></pre>
+<h2 id="0">0</h2>
+<p>Frog既定。</p>
+<p>Activationは内部で存在しても、history termとしてscoreへ入りません。</p>
+<h2 id="正にすると">正にすると</h2>
+<p>最近活性化した記号を押し上げます。</p>
+<h2 id="負にすると">負にすると</h2>
+<p>[EXP-C]</p>
+<p><code>history_boost=-0.3</code>では、教材実験で候補scoreがすべて消え、</p>
+<pre><code class="language-text">&lt;END&gt; = 1.0
+</code></pre>
+<p>となりました。</p>
+<p>つまり負値は、</p>
+<blockquote>
+<p>最近の記号を抑制する</p>
+</blockquote>
+<p>程度では済まず、candidate set全体を消す場合があります。</p>
+<h3 id="research-result">Research Result</h3>
+<p>[EXP-R]</p>
+<p>H-GEN-2では、</p>
+<pre><code class="language-text">history_boost = 0.35
+        ↓
+history_boost = 0
+</code></pre>
+<p>へ変更すると、<strong>最初の生成逸脱が遅れました</strong>。</p>
+<p>つまりこの実験では、</p>
+<blockquote>
+<p>History termを外した方が生成崩壊が遅くなった</p>
+</blockquote>
+<p>という結果です。</p>
+<p>「Historyを入れると必ず悪い」という一般則ではありません。</p>
+<hr />
+<h1 id="9-refractory_steps">9. <code>refractory_steps</code></h1>
+<p><strong>Default:</strong> <code>0</code></p>
+<p>[CODE][EXP-C]</p>
+<p>最近出た記号を何個前まで禁止するか。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">steps</th>
+<th>「右右」の次</th>
+<th>「右右下」の次</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td>下 0.777 / 右 0.223</td>
+<td>右 0.865</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td>下 1.0</td>
+<td>右 0.865</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>下 1.0</td>
+<td><code>&lt;END&gt;</code> 1.0</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>下 1.0</td>
+<td><code>&lt;END&gt;</code> 1.0</td>
+</tr>
+</tbody>
+</table>
+<p>非常に良い教材Configです。</p>
+<hr />
+<h1 id="10-max_consecutive_repeats">10. <code>max_consecutive_repeats</code></h1>
+<p><strong>Default:</strong> <code>2</code></p>
+<p>[CODE]</p>
+<p>Refractoryの例外規則です。</p>
+<h3 id="prerequisite_2">Prerequisite</h3>
+<pre><code class="language-text">refractory_steps &gt; 0
+</code></pre>
+<p>でなければ意味を持ちません。</p>
+<p>これは、</p>
+<blockquote>
+<p>「禁止されているけど、学習済みself-loopなら何回まで許す？」</p>
+</blockquote>
+<p>を決めます。</p>
+<h3 id="おすすめ実験_2">おすすめ実験</h3>
+<pre><code class="language-text">A → A → A → B
+</code></pre>
+<p>を学習して、</p>
+<pre><code class="language-text">refractory_steps = 2
+max_consecutive_repeats = 1 / 2 / 3
+</code></pre>
+<p>を比較。</p>
+<hr />
+<h1 id="11-pair_context_capacity">11. <code>pair_context_capacity</code></h1>
+<p><strong>Frog default:</strong> <code>2048</code></p>
+<p>[CODE][EXP-C]</p>
+<p>直前2Tokenの組を何種類保存するか。</p>
+<p><code>0</code>で無効。</p>
+<p>[EXP-C]</p>
+<p>No-Context Frogでは教材例が、</p>
+<pre><code class="language-text">下 0.5
+右 0.5
+</code></pre>
+<p>になりました。</p>
+<p>Capacityが満杯になると、弱いPairから追い出されます。</p>
+<hr />
+<h1 id="12-pair_context_boost">12. <code>pair_context_boost</code></h1>
+<p><strong>Default:</strong> <code>1.0</code></p>
+<p>[CODE]</p>
+<p>ここはScaleに注意が必要です。</p>
+<p>Pair rowは使用時に、</p>
+<pre><code class="language-text">pair_scores / pair_total
+</code></pre>
+<p>と合計1へ正規化されます。</p>
+<p>そのあと、</p>
+<pre><code class="language-text">× pair_context_boost
+</code></pre>
+<p>してcandidate scoreへ加えられます。</p>
+<p>一方、Frog既定ではDirect scoreは、</p>
+<pre><code class="language-text">raw edge weight
+</code></pre>
+<p>のままです。</p>
+<p>Edge weightは最大<code>10.0</code>まで持てます。</p>
+<p>したがって標準状態では、</p>
+<blockquote>
+<p><strong>DirectとPairはそもそも同じScaleではありません。</strong></p>
+</blockquote>
+<h3 id="normalize_direct_scorestrue"><code>normalize_direct_scores=True</code></h3>
+<p>これをONにするとDirect側も合計1へ正規化され、</p>
+<pre><code class="language-text">Direct : normalized
+Pair   : normalized
+</code></pre>
+<p>となります。</p>
+<p>このとき両者は比較しやすいScaleになります。</p>
+<h3 id="research-connection">Research connection</h3>
+<p>[EXP-R]</p>
+<p>H-LEAK-1のResearch Editionでは<code>normalize_direct_scores=True</code>を使用していました。</p>
+<p>そこでは誤候補への最終probability massについて、</p>
+<pre><code class="language-text">direct         : 約87〜91%
+backoff mixing : 約9〜13%
+pair memory    : 0%
+</code></pre>
+<p>でした。</p>
+<p>Pair Memoryは正しいカテゴリだけを指し、漏洩源になりませんでした。</p>
+<p>ただしResearch EditionにはCourse Editionに存在しないbackoff mixingがあります。</p>
+<hr />
+<h1 id="13-context_trace_decay">13. <code>context_trace_decay</code></h1>
+<p><strong>Default:</strong> <code>0.0</code></p>
+<p>[CODE]</p>
+<p>Traceが1Tokenごとにどれだけ残るか。</p>
+<h3 id="prerequisite_3">Prerequisite</h3>
+<pre><code class="language-text">context_projection_boost &gt; 0
+</code></pre>
+<p>でなければ、Traceを変更してもpredictionへ反映されません。</p>
+<p>これは非常に重要です。</p>
+<pre><code class="language-text">Traceを作る
+ ↓
+projectionがOFF
+ ↓
+scoreへ入らない
+ ↓
+predictは変わらない
+</code></pre>
+<h3 id="evidence">Evidence</h3>
+<p>[EXP-C]</p>
+<p>単純な教材例ではTraceを有効化しても変化なし。</p>
+<p>[EXP-R]</p>
+<p>Research Editionの追加Trace機構も主に負方向。</p>
+<p>両者は同じ機構ではないので結果を混同しません。</p>
+<hr />
+<h1 id="14-context_projection_boost">14. <code>context_projection_boost</code></h1>
+<p><strong>Default:</strong> <code>0.0</code></p>
+<p>[CODE]</p>
+<p>TraceをEdge構造へ投影し、candidate scoreへ足す倍率です。</p>
+<p>ただし重要な制約があります。</p>
+<p>Projectionは、</p>
+<blockquote>
+<p><strong>すでにpositive scoreを持つcandidate</strong></p>
+</blockquote>
+<p>にしか加算されません。</p>
+<p>つまり、</p>
+<pre><code class="language-text">score = 0
+</code></pre>
+<p>だった全く新しいcandidateを、Traceだけで突然生み出すことはできません。</p>
+<p>概念的には、</p>
+<pre><code class="language-text">existing candidates
+       ↓
+Traceが順位・scoreを補正
+</code></pre>
+<p>です。</p>
+<h3 id="何が壊れる_1">何が壊れる？</h3>
+<p>Boostを上げても、</p>
+<blockquote>
+<p>Candidate generation能力そのものが増える</p>
+</blockquote>
+<p>わけではありません。</p>
+<p>既存候補間のbiasが強まります。</p>
+<hr />
+<h1 id="15-learning_rate">15. <code>learning_rate</code></h1>
+<p><strong>Default:</strong> <code>0.1</code></p>
+<p>[CODE]</p>
+<p>1回観測するたびにEdgeをどれだけ増やすか。</p>
+<p>低い:</p>
+<blockquote>
+<p>ゆっくり学習。</p>
+</blockquote>
+<p>高い:</p>
+<blockquote>
+<p>少数観測で強く学習。</p>
+</blockquote>
+<p>高すぎると<code>max_edge_weight</code>へ早く到達します。</p>
+<hr />
+<h1 id="16-max_edge_weight">16. <code>max_edge_weight</code></h1>
+<p><strong>Default:</strong> <code>10.0</code></p>
+<p>[CODE]</p>
+<p>Direct / Context / Pair learningの上限。</p>
+<p>低いと早く飽和。</p>
+<p>高いと頻度差を長く保持できます。</p>
+<hr />
+<h1 id="17-weight_decay">17. <code>weight_decay</code></h1>
+<p><strong>Default:</strong> <code>0.9995</code></p>
+<p>ここは重要な修正点です。</p>
+<p>[CODE][EXP-C]</p>
+<p><code>weight_decay</code>が減衰させるのは、</p>
+<pre><code class="language-text">direct weights
+context weights
+</code></pre>
+<p>です。</p>
+<p><strong>Pair Context Memoryにはweight_decayが適用されません。</strong></p>
+<p>つまり、</p>
+<pre><code class="language-text">Direct / Context
+ ↓
+decay
+
+Pair Memory
+ ↓
+decayしない
+</code></pre>
+<p>です。</p>
+<p>[EXP-C]</p>
+<p><code>x → y → z</code>を3系列×3エポック(36学習step)、<code>weight_decay=0.9</code>で学習した実験では、</p>
+<ul>
+<li>Direct weightの合計は、減衰なし(<code>1.0</code>)の<code>3.6</code>に対して<code>0.98</code>まで減衰</li>
+<li>Pair Memoryの合計は<code>2.7</code>(= 0.1 × 27回の更新。減衰なしの値そのもの)</li>
+</ul>
+<p>でした。</p>
+<p>したがって、</p>
+<blockquote>
+<p><strong>FrogのPair Memoryはweight_decayによる忘却をしない。</strong></p>
+</blockquote>
+<p>正確には、新しいPair学習によって値は更新されますが、<code>weight_decay</code>による時間減衰を受けません。</p>
+<hr />
+<h2 id="171-trap-a--重みが減っても確率が変わらない">17.1 Trap A — 重みが減っても確率が変わらない</h2>
+<p>例えば、</p>
+<pre><code class="language-text">A:
+朝 → 起きる → 歯磨き
+
+B:
+夜 → 寝る → 夢
+</code></pre>
+<p>のようにPrefixが競合しない場合。</p>
+<p>古いDirect weightが減っても、</p>
+<pre><code class="language-text">朝 → 起きる
+</code></pre>
+<p>の候補が<code>歯磨き</code>しかなければ、</p>
+<pre><code class="language-text">P(歯磨き) = 1.0
+</code></pre>
+<p>のままです。</p>
+<blockquote>
+<p><strong>絶対scoreが下がることと、正規化後確率が下がることは別。</strong></p>
+</blockquote>
+<hr />
+<h2 id="172-trap-b--競合すると確率に見える">17.2 Trap B — 競合すると確率に見える</h2>
+<p>[EXP-C]</p>
+<pre><code class="language-python">A = [[&quot;朝&quot;, &quot;起きる&quot;, &quot;歯磨き&quot;] * 4]
+B = [[&quot;朝&quot;, &quot;起きる&quot;, &quot;二度寝&quot;] * 4]
+</code></pre>
+<p>のように同一Prefixで競合させると、</p>
+<table>
+<thead>
+<tr>
+<th>decay</th>
+<th>B追加後</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0</td>
+<td>歯磨き ≈ 0.985</td>
+</tr>
+<tr>
+<td>0.9995</td>
+<td>歯磨き ≈ 0.981</td>
+</tr>
+<tr>
+<td>0.99</td>
+<td>歯磨き ≈ 0.79 / 二度寝 ≈ 0.21</td>
+</tr>
+</tbody>
+</table>
+<p>となりました。</p>
+<p>この<strong>競合実験</strong>で、古い候補のraw scoreは、</p>
+<pre><code class="language-text">3.26 → 2.29
+</code></pre>
+<p>へ低下しました。</p>
+<p>この数値は、</p>
+<blockquote>
+<p>「確率が1.0のままだった非競合ケース」</p>
+</blockquote>
+<p>のものではありません。</p>
+<hr />
+<h2 id="173-pair-memoryが忘れないという意味">17.3 Pair Memoryが忘れないという意味</h2>
+<p>ここがCSEとして面白いところです。</p>
+<p>同一PrefixのPairを学習している場合、</p>
+<pre><code class="language-text">Direct
+ └─ weight_decayを受ける
+
+Pair
+ └─ decayしない
+</code></pre>
+<p>ので、長期的には両者の相対バランスが変化する可能性があります。</p>
+<p>したがってCompetitive Forgettingは、</p>
+<blockquote>
+<p><strong>CSE全体が一様に忘れている</strong></p>
+</blockquote>
+<p>と解釈してはいけません。</p>
+<p>より正確には、</p>
+<blockquote>
+<p><strong>Direct / Context系は減衰する一方、Pair Memoryはweight_decayでは忘れない。</strong></p>
+</blockquote>
+<p>です。</p>
+<p>これは今後の重要な教材テーマです。</p>
+<hr />
+<h1 id="18-weight_decay_scope">18. <code>weight_decay_scope</code></h1>
+<p><strong>Default:</strong> <code>"global"</code></p>
+<p>[CODE]</p>
+<pre><code class="language-text">global
+active_rows
+</code></pre>
+<p>から選択。</p>
+<p><code>global</code>は全Direct / Context weight。</p>
+<p><code>active_rows</code>は現在学習に関係するRowだけ。</p>
+<p>なお、</p>
+<blockquote>
+<p><strong>どちらを選んでもPair Memoryはweight_decay対象外</strong></p>
+</blockquote>
+<p>です。</p>
+<hr />
+<h1 id="19-temporal_learning_window">19. <code>temporal_learning_window</code></h1>
+<p><strong>Default:</strong> <code>1</code></p>
+<p>[CODE]</p>
+<p>何個前まで遡って現在Tokenとの関係を学習するか。</p>
+<pre><code class="language-text">1
+→ 直前だけ
+
+2
+→ 2個前まで
+
+3
+→ 3個前まで
+</code></pre>
+<p>ただし、すべてが同じMatrixへ入るわけではありません。</p>
+<p>Frog既定の、</p>
+<pre><code class="language-text">direct_learning_window = 2
+</code></pre>
+<p>では、</p>
+<pre><code class="language-text">distance 1 → direct weight
+distance 2 → direct weight
+distance 3+ → context weight
+</code></pre>
+<p>です。</p>
+<h3 id="重要">重要</h3>
+<p><code>frog.edges()</code>が表示するのはDirect Edgeです。</p>
+<p>したがって、</p>
+<pre><code class="language-text">A → x → x → B
+</code></pre>
+<p>でAからBはdistance 3。</p>
+<p><code>temporal_learning_window &gt;= 3</code>なら関係自体は学習できますが、</p>
+<pre><code class="language-text">A → B
+</code></pre>
+<p>は<strong>context weightへ入るため<code>edges("A")</code>には出ません。</strong></p>
+<h3 id="おすすめ実験_3">おすすめ実験</h3>
+<pre><code class="language-text">A B C D E
+</code></pre>
+<p>で、</p>
+<pre><code class="language-text">window = 1 / 2 / 3 / 4
+</code></pre>
+<p>を変える。</p>
+<p>観察:</p>
+<pre><code class="language-text">distance 1–2:
+edges()
+
+distance 3+:
+Trace + Projectionを有効にして予測への影響を見る
+</code></pre>
+<hr />
+<h1 id="20-direct_learning_window">20. <code>direct_learning_window</code></h1>
+<p><strong>Default:</strong> <code>2</code></p>
+<p>[CODE]</p>
+<p>Temporal Learning Window内の関係を、</p>
+<pre><code class="language-text">Direct
+or
+Context
+</code></pre>
+<p>どちらへ保存するかの境界。</p>
+<h3 id="prerequisite_4">Prerequisite</h3>
+<pre><code class="language-text">temporal_learning_window &gt;= 2
+</code></pre>
+<p>でなければ実質的な意味がありません。</p>
+<p>例えば、</p>
+<pre><code class="language-text">temporal_learning_window = 1
+</code></pre>
+<p>ならdistance 2以上をそもそも学習しないため、</p>
+<pre><code class="language-text">direct_learning_window = 1
+2
+3
+</code></pre>
+<p>を変えても差が出ません。</p>
+<h3 id="低くすると_1">低くすると</h3>
+<p>遠い関係をContext Matrixへ回します。</p>
+<h3 id="高くすると_1">高くすると</h3>
+<p>遠い関係までDirect Matrixへ入れます。</p>
+<hr />
+<h1 id="21-temporal_learning_decay">21. <code>temporal_learning_decay</code></h1>
+<p><strong>Default:</strong> <code>0.5</code></p>
+<p>[CODE]</p>
+<p>距離が遠い関係をどれだけ弱く学習するか。</p>
+<h3 id="prerequisite_5">Prerequisite</h3>
+<pre><code class="language-text">temporal_learning_window &gt;= 2
+</code></pre>
+<p>が必要。</p>
+<p>Window=1ならdistance 2以上が存在しないため、Decayを変えても結果は変わりません。</p>
+<h3 id="おすすめ実験_4">おすすめ実験</h3>
+<pre><code class="language-text">A B C D
+</code></pre>
+<p>について、</p>
+<pre><code class="language-text">temporal_learning_window = 3
+</code></pre>
+<p>を固定し、</p>
+<pre><code class="language-text">temporal_learning_decay =
+0.1
+0.5
+1.0
+</code></pre>
+<p>を比較。</p>
+<hr />
+<h1 id="22-normalize_direct_scores">22. <code>normalize_direct_scores</code></h1>
+<p><strong>Default:</strong> <code>False</code></p>
+<p>[CODE]</p>
+<p>False:</p>
+<pre><code class="language-text">Direct = raw weight
+</code></pre>
+<p>True:</p>
+<pre><code class="language-text">Direct row / positive row sum
+</code></pre>
+<p>とします。</p>
+<p>これはPairとの比較で重要。</p>
+<p>Pairは元々、</p>
+<pre><code class="language-text">pair row / positive row sum
+</code></pre>
+<p>なので、</p>
+<pre><code class="language-python">normalize_direct_scores=True
+</code></pre>
+<p>にすると、</p>
+<pre><code class="language-text">Direct ≈ normalized scale
+Pair   ≈ normalized scale
+</code></pre>
+<p>になります。</p>
+<p>[EXP-R]</p>
+<p>H-LEAK-1はこの設定でDirectとPairを比較しています。</p>
+<hr />
+<h1 id="23-activation_decay">23. <code>activation_decay</code></h1>
+<p><strong>Default:</strong> <code>0.6</code></p>
+<p>[CODE][EXP-C]</p>
+<p>1stepごとにActivationをどれだけ残すか。</p>
+<h3 id="prerequisite_6">Prerequisite</h3>
+<pre><code class="language-text">history_boost &gt; 0
+</code></pre>
+<p>Frog既定では<code>history_boost=0</code>なので、</p>
+<blockquote>
+<p>activation_decayだけ変えてもPredictionは変わりません。</p>
+</blockquote>
+<p>これは「設定が壊れている」のではなく、</p>
+<pre><code class="language-text">Activation
+ ↓
+History Score
+
+History Score × 0
+ ↓
+0
+</code></pre>
+<p>だからです。</p>
+<h3 id="おすすめ実験_5">おすすめ実験</h3>
+<pre><code class="language-python">Frog(
+    history_boost=0.35,
+    activation_decay=...
+)
+</code></pre>
+<p>として、</p>
+<pre><code class="language-text">0.1
+0.6
+0.9
+</code></pre>
+<p>を比較。</p>
+<hr />
+<h1 id="24-threshold">24. <code>threshold</code></h1>
+<p><strong>Default:</strong> <code>0.05</code></p>
+<p>[CODE][EXP-C]</p>
+<p>どのActivationから先へ伝播を許すか。</p>
+<h3 id="prerequisite_7">Prerequisite</h3>
+<pre><code class="language-text">history_boost &gt; 0
+</code></pre>
+<p>Predictionへの変化を見るにはHistory pathwayが必要です。</p>
+<h2 id="低い">低い</h2>
+<p>弱いactivationも広がる。</p>
+<h2 id="高い">高い</h2>
+<p>強いactivationだけ伝播。</p>
+<h3 id="trap">Trap</h3>
+<p>Frog既定でthresholdだけ変えて、</p>
+<pre><code class="language-text">何も変わらない！
+</code></pre>
+<p>となるのは正常です。</p>
+<hr />
+<h1 id="25-activation_cap">25. <code>activation_cap</code></h1>
+<p><strong>Default:</strong> <code>0.0</code></p>
+<p>[CODE][EXP-C]</p>
+<p>Activationの上限。</p>
+<p><code>0</code>は無制限ではなく、自動安全上限。</p>
+<h3 id="prerequisite_8">Prerequisite</h3>
+<pre><code class="language-text">history_boost &gt; 0
+</code></pre>
+<p>Predictionへ影響させるにはHistory経路をONにする必要があります。</p>
+<h3 id="小さくすると">小さくすると</h3>
+<p>強いactivationを早くclip。</p>
+<h3 id="高くすると_2">高くすると</h3>
+<p>より大きなactivationを残せる。</p>
+<hr />
+<h1 id="26-max_nodes">26. <code>max_nodes</code></h1>
+<p><strong>Frog default:</strong> <code>256</code></p>
+<p>[CODE][DOC]</p>
+<p>利用者Tokenは、</p>
+<pre><code class="language-text">256 - 3 special nodes
+= 253
+</code></pre>
+<p>まで。</p>
+<p>Main matricesは概ね、</p>
+<pre><code class="language-text">N × N
+</code></pre>
+<p>なので、メモリは二乗で増えます。</p>
+<hr />
+<h1 id="27-seed">27. <code>seed</code></h1>
+<p><strong>Default:</strong> <code>42</code></p>
+<p>[CODE][DOC]</p>
+<p>Frogの通常の、</p>
+<pre><code class="language-text">learn
+predict
+top
+probabilities
+</code></pre>
+<p>は決定論的。</p>
+<p>seedを変えても通常結果は変わりません。</p>
+<p>Engine内部のsample generation等で乱数を使う場合に意味を持ちます。</p>
+<hr />
+<h1 id="28-config-dependency-graph">28. Config Dependency Graph</h1>
+<p>今回の実験で、Configを単独のツマミとして見るだけでは不十分なことが分かりました。</p>
+<pre><code class="language-text">activation_decay ─┐
+threshold ─────────┼──► activation
+activation_cap ────┘        │
+                            ▼
+                     history_boost
+                            │
+                            ▼
+                     candidate score
+
+
+context_trace_decay
+        │
+        ▼
+ context_trace
+        │
+        ▼
+context_projection_boost
+        │
+        ▼
+ existing candidates only
+
+
+temporal_learning_window
+        │
+        ├──► temporal_learning_decay
+        │
+        └──► direct_learning_window
+                  │
+             ┌────┴────┐
+             ▼         ▼
+          direct     context
+
+
+refractory_steps
+        │
+        ▼
+ candidate blocking
+        │
+        └── max_consecutive_repeats
+             （例外規則）
+</code></pre>
+<p>Configは、</p>
+<blockquote>
+<p><strong>23個の独立したノブ</strong></p>
+</blockquote>
+<p>ではありません。</p>
+<p>むしろ、</p>
+<blockquote>
+<p><strong>依存関係を持つ小さな回路</strong></p>
+</blockquote>
+<p>です。</p>
+<hr />
+<h1 id="29-何も変わらないには2種類ある">29. 「何も変わらない」には2種類ある</h1>
+<p>これは今回かなり重要な発見です。</p>
+<h2 id="type-a--内部では変化したが出力に見えない">Type A — 内部では変化したが、出力に見えない</h2>
+<p>例:</p>
+<pre><code class="language-text">weight_decay
+</code></pre>
+<p>scoreは減っている。</p>
+<p>しかし候補が1つなので、</p>
+<pre><code class="language-text">probability = 1.0
+</code></pre>
+<p>のまま。</p>
+<hr />
+<h2 id="type-b--そもそもprediction経路がoff">Type B — そもそもPrediction経路がOFF</h2>
+<p>例:</p>
+<pre><code class="language-text">activation_decay
+</code></pre>
+<p>だけ変更。</p>
+<p>しかし、</p>
+<pre><code class="language-text">history_boost = 0
+</code></pre>
+<p>なのでActivation差がscoreへ届かない。</p>
+<p>この場合は、</p>
+<blockquote>
+<p><strong>本当にPredictionへは何も起きていない。</strong></p>
+</blockquote>
+<hr />
+<p>この二つを区別します。</p>
+<pre><code class="language-text">predict()同じ
+       │
+       ├─ scoreは変わった？
+       │      ├─ YES → Type A
+       │      └─ NO
+       │
+       └─ prerequisiteはON？
+              ├─ NO → Type B
+              └─ YES → 別の理由を調査
+</code></pre>
+<p>これはCSEを解剖する際の重要な診断フローです。</p>
+<hr />
+<h1 id="30-recommended-experiment-pack">30. Recommended Experiment Pack</h1>
+<h2 id="01-temperature-ladder">01 Temperature Ladder</h2>
+<pre><code class="language-text">0.05 → 0.2 → 0.8 → 2 → 10
+</code></pre>
+<hr />
+<h2 id="02-refractory-ladder">02 Refractory Ladder</h2>
+<pre><code class="language-text">0 → 1 → 2 → 5
+</code></pre>
+<hr />
+<h2 id="03-pair-context-onoff">03 Pair Context ON/OFF</h2>
+<pre><code class="language-text">capacity 2048
+vs
+0
+</code></pre>
+<hr />
+<h2 id="04-competitive-forgetting">04 Competitive Forgetting</h2>
+<p>同じPrefixに別Continuationを学習。</p>
+<p>さらに、</p>
+<pre><code class="language-text">Direct
+Pair
+Probability
+</code></pre>
+<p>を別々に観察。</p>
+<hr />
+<h2 id="05-activation-wake-up">05 Activation Wake-Up</h2>
+<p>まず、</p>
+<pre><code class="language-text">history_boost = 0
+</code></pre>
+<p>で、</p>
+<pre><code class="language-text">activation_decay
+threshold
+activation_cap
+</code></pre>
+<p>を変更。</p>
+<p>→ Prediction変化なし。</p>
+<p>その後、</p>
+<pre><code class="language-text">history_boost = 0.35
+</code></pre>
+<p>へ変更。</p>
+<p>→ Activation系Configが「生きる」かを見る。</p>
+<p>これはPrerequisiteの概念を理解する最良の教材候補です。</p>
+<hr />
+<h2 id="06-trace-wake-up">06 Trace Wake-Up</h2>
+<pre><code class="language-text">context_projection_boost = 0
+</code></pre>
+<p>の状態で<code>context_trace_decay</code>を変更。</p>
+<p>→ Prediction変化なし。</p>
+<p>次にProjectionをON。</p>
+<pre><code class="language-text">context_projection_boost &gt; 0
+</code></pre>
+<p>→ TraceがPredictionへ届く。</p>
+<hr />
+<h2 id="07-temporal-wake-up">07 Temporal Wake-Up</h2>
+<pre><code class="language-text">temporal_learning_window = 1
+</code></pre>
+<p>で、</p>
+<pre><code class="language-text">temporal_learning_decay
+direct_learning_window
+</code></pre>
+<p>を変更。</p>
+<p>→ 差なし。</p>
+<p>次に、</p>
+<pre><code class="language-text">temporal_learning_window = 3
+</code></pre>
+<p>へ。</p>
+<p>→ 距離2・3の学習差を見る。</p>
+<hr />
+<h2 id="08-direct-vs-pair-scale">08 Direct vs Pair Scale</h2>
+<pre><code class="language-text">normalize_direct_scores = False
+</code></pre>
+<p>と、</p>
+<pre><code class="language-text">True
+</code></pre>
+<p>を比較。</p>
+<p><code>explain()</code>で、</p>
+<pre><code class="language-text">direct
+pair
+score
+probability
+</code></pre>
+<p>を見る。</p>
+<hr />
+<h1 id="31-実験するときのチェックリスト">31. 実験するときのチェックリスト</h1>
+<p>Configを変えたら、</p>
+<pre><code class="language-text">□ そのConfigのPrerequisiteはONか？
+□ predict()だけで判断していないか？
+□ top()で分布を見たか？
+□ scores()でraw scoreを見たか？
+□ explain()で成分を分解したか？
+□ DirectとPairを混同していないか？
+□ weight decay対象のMemoryか？
+□ Course EditionとResearch Editionを混ぜていないか？
+</code></pre>
+<p>を確認します。</p>
+<hr />
+<h1 id="32-config-difficulty">32. Config Difficulty</h1>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Config</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🐸 Easy</td>
+<td><code>temperature</code>, <code>refractory_steps</code>, <code>pair_context_capacity</code>, <code>weight_decay</code></td>
+</tr>
+<tr>
+<td>🐸🐸 Medium</td>
+<td><code>top_k_edges</code>, <code>pair_context_boost</code>, <code>learning_rate</code>, <code>max_nodes</code>, <code>probability_mode</code></td>
+</tr>
+<tr>
+<td>🐸🐸🐸 Advanced</td>
+<td><code>history_boost</code>, <code>context_trace_decay</code>, <code>context_projection_boost</code>, <code>activation_decay</code>, <code>threshold</code>, <code>activation_cap</code></td>
+</tr>
+<tr>
+<td>🔬 Research</td>
+<td><code>temporal_learning_window</code>, <code>direct_learning_window</code>, <code>temporal_learning_decay</code>, <code>normalize_direct_scores</code>, <code>weight_decay_scope</code>, <code>max_edge_weight</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="33-23-config-checklist">33. 23 Config Checklist</h1>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Config</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td><code>max_nodes</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td><code>learning_rate</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td><code>max_edge_weight</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td><code>weight_decay</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td><code>weight_decay_scope</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td><code>activation_decay</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td><code>activation_cap</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td><code>threshold</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td><code>top_k_edges</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td><code>temperature</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td><code>probability_mode</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td><code>history_boost</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td><code>refractory_steps</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td><code>max_consecutive_repeats</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td><code>temporal_learning_window</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td><code>direct_learning_window</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td><code>temporal_learning_decay</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td><code>context_trace_decay</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td><code>context_projection_boost</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td><code>normalize_direct_scores</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">21</td>
+<td><code>pair_context_capacity</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">22</td>
+<td><code>pair_context_boost</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">23</td>
+<td><code>seed</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>23 / 23 covered. 🐸✅</strong></p>
+<hr />
+<h1 id="closing">Closing</h1>
+<p>最初は23個のConfigが、</p>
+<pre><code class="language-text">23個のツマミ
+</code></pre>
+<p>に見えます。</p>
+<p>でも実際には、</p>
+<pre><code class="language-text">Switch
+ ↓
+Subsystem
+ ↓
+Another Config
+ ↓
+Candidate Score
+ ↓
+Top-K
+ ↓
+Probability
+</code></pre>
+<p>という依存構造を持っています。</p>
+<p>だから、</p>
+<blockquote>
+<p><strong>設定を変えたのに何も起きない</strong></p>
+</blockquote>
+<p>こと自体がバグとは限りません。</p>
+<p>前提となる回路がOFFなのかもしれない。</p>
+<p>逆に、</p>
+<blockquote>
+<p><strong>predict()は同じなのに、中では大きく変わっている</strong></p>
+</blockquote>
+<p>こともあります。</p>
+<p>CSE Moddingでは、</p>
+<p><strong>Outputを見る。
+Scoreを見る。
+Componentを見る。
+そして、回路を見る。</strong></p>
+<p>それが🐸の解剖です。</p>
+<p><strong>Tune it. Wake it. Break it. Explain it. 🐸🎛️🔬</strong></p>
+  </main>
+</div>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div>cse-frog — MIT License. © 2026 Emilia Lab / 鍵乃ねこ (kagioneko)</div>
+    <nav aria-label="外部リンク">
+      <a href="https://github.com/kagioneko/cse-frog">GitHub</a>
+      <a href="https://pypi.org/project/cse-frog/">PyPI</a>
+      <a href="https://note.com/emilia_lab/n/ne9082f0193a7">紹介記事（note）</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

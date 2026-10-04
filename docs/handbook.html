@@ -1,0 +1,1323 @@
+<!doctype html>
+<html lang="ja" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ハンドブック — cse-frog</title>
+<meta name="description" content="cse-frog ハンドブック：遊び方・壊し方・改造のしかた">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://img.shields.io; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta property="og:title" content="ハンドブック — cse-frog">
+<meta property="og:image" content="https://kagioneko.github.io/cse-frog/assets/og.png">
+<link rel="icon" href="../assets/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1+Code:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../css/docs.css">
+<script src="../js/site.js"></script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="../"><img src="../assets/pixel-icon.png" alt="" width="34" height="34"><b>cse-frog</b></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">メニュー</button>
+    <nav class="nav" id="nav" aria-label="サイト内">
+      <a href="../">トップ</a>
+      <a href="../play.html">ブラウザで飼う</a>
+      <a href="handbook.html" aria-current="page">ドキュメント</a>
+      <a href="https://github.com/kagioneko/cse-frog">GitHub</a>
+    </nav>
+    <button class="theme-btn" type="button" aria-label="明るさを切り替える" title="明るさを切り替える">◐</button>
+  </div>
+</header>
+
+<div class="wrap doc-layout">
+  <aside class="doc-side">
+    <nav class="docnav" aria-label="ドキュメント"><a href="handbook.html" aria-current="page">ハンドブック</a>
+<a href="reference.html">リファレンス</a>
+<a href="config.html">設定ガイド</a></nav>
+    <details class="toc" open>
+      <summary>このページの目次</summary>
+      <ol><li><a href="#0-evidence-labels">0. Evidence Labels</a></li>
+<li><a href="#1-この本は何">1. この本は何？</a></li>
+<li><a href="#2-cseを一言でいうと">2. CSEを一言でいうと</a></li>
+<li><a href="#3-lm界のstable-diffusionという遊び方">3. 「LM界のStable Diffusion」という遊び方</a></li>
+<li><a href="#4-最初の">4. 最初の🐸</a></li>
+<li><a href="#5-の中身">5. 🐸の中身</a></li>
+<li><a href="#6-cseと大きなlmの機能対応">6. CSEと大きなLMの機能対応</a></li>
+<li><a href="#7-engine-capabilityとfrog-apiは別">7. Engine CapabilityとFrog APIは別</a></li>
+<li><a href="#8-config--の挙動を変える">8. Config — 🐸の挙動を変える</a></li>
+<li><a href="#9-temperature">9. Temperature</a></li>
+<li><a href="#10-top-k">10. Top-K</a></li>
+<li><a href="#11-refractory--何個前まで禁止する">11. Refractory — 何個前まで禁止する？</a></li>
+<li><a href="#12-pair-context">12. Pair Context</a></li>
+<li><a href="#13-slow-context-trace">13. Slow Context Trace</a></li>
+<li><a href="#14-の頭を見る">14. 🐸の頭を見る</a></li>
+<li><a href="#15-frog-presets">15. Frog Presets</a></li>
+<li><a href="#16-top-pを追加する">16. Top-pを追加する</a></li>
+<li><a href="#17-sampler-pack">17. Sampler Pack</a></li>
+<li><a href="#18-を育てる">18. 🐸を育てる</a></li>
+<li><a href="#19-ragっぽい構成">19. RAGっぽい構成</a></li>
+<li><a href="#20-anomaly-frog">20. Anomaly Frog</a></li>
+<li><a href="#21--on---cse-colony">21. 🐸 on 🐸 / CSE Colony</a></li>
+<li><a href="#22-agent-frog">22. Agent Frog</a></li>
+<li><a href="#23-cseが苦手なこと">23. CSEが苦手なこと</a></li>
+<li><a href="#24-cseが面白いところ">24. CSEが面白いところ</a></li>
+<li><a href="#25-失敗も結果">25. 失敗も結果</a></li>
+<li><a href="#26-modding-tree">26. Modding Tree</a></li>
+<li><a href="#27-recommended-experiments">27. Recommended Experiments</a></li>
+<li><a href="#28-handbookの研究ルール">28. Handbookの研究ルール</a></li>
+<li><a href="#29-cseの最終的な見方">29. CSEの最終的な見方</a></li>
+<li><a href="#appendix-a--ドキュメントの役割">Appendix A — ドキュメントの役割</a></li>
+<li><a href="#appendix-b--capability-status">Appendix B — Capability Status</a></li>
+<li><a href="#closing">Closing</a></li></ol>
+    </details>
+  </aside>
+  <main class="doc label-card">
+    <p class="doc-src">このページは <a href="https://github.com/kagioneko/cse-frog/blob/main/docs/HANDBOOK.md">GitHub の文書</a> から作っています。</p>
+<h1 id="cse-technical-handbook-">CSE Technical Handbook 🐸</h1>
+<h2 id="build-break-grow-your-frog">Build, Break, Grow Your Frog</h2>
+<p><strong>Version:</strong> Draft 0.4<br />
+<strong>Target:</strong> CSE Course Edition / <code>Frog</code> API<br />
+<strong>Concept:</strong> A hands-on handbook for building, modifying, observing, breaking, and growing a tiny language model.</p>
+<hr />
+<h1 id="0-evidence-labels">0. Evidence Labels</h1>
+<p>このHandbookでは、記述の根拠を明確に分離します。</p>
+<p><strong>[CODE]</strong><br />
+Course Editionの実コードから直接確認できること。</p>
+<p><strong>[DOC]</strong><br />
+README / API Referenceに明記されていること。</p>
+<p><strong>[EXP-C]</strong><br />
+Course Edition / <code>Frog</code> で実際に確認した結果。</p>
+<p><strong>[EXP-R]</strong><br />
+Research Editionで行われ、監査済みの実験結果。</p>
+<p><strong>[IDEA]</strong><br />
+まだ標準実装・性能優位が確認されていない拡張案。</p>
+<p>「実装されている」「講座版で再現した」「研究版で確認した」「まだアイデア」を混同しないことが、このHandbookの基本ルールです。</p>
+<hr />
+<h1 id="1-この本は何">1. この本は何？</h1>
+<p>[DOC]</p>
+<p>CSE Course Editionは、順番のあるデータを学習して「次に何が来そうか」を予測する、小さな学習用AIです。</p>
+<p>READMEでは、巨大LLMの代替ではなく、</p>
+<blockquote>
+<p><strong>中身を全部開いて、壊して学べる「LMの素体」</strong></p>
+</blockquote>
+<p>として位置付けられています。</p>
+<p>このHandbookはAPI一覧ではありません。APIの正確な仕様は<code>REFERENCE.md</code>が担当します。</p>
+<p>ここでやるのは、</p>
+<pre><code class="language-text">作る
+ ↓
+覚えさせる
+ ↓
+観察する
+ ↓
+設定を変える
+ ↓
+壊す
+ ↓
+理由を見る
+ ↓
+機能を足す
+ ↓
+比較する
+</code></pre>
+<p>です。</p>
+<hr />
+<h1 id="2-cseを一言でいうと">2. CSEを一言でいうと</h1>
+<p>[CODE][DOC]</p>
+<p>CSEは、</p>
+<blockquote>
+<p><strong>小さく、逐次学習でき、内部状態を観察でき、設定を変更しながら実験できる系列予測モデル</strong></p>
+</blockquote>
+<p>です。</p>
+<p>巨大な事前学習済みLMを、</p>
+<pre><code class="language-text">Load
+ ↓
+Prompt
+ ↓
+Output
+</code></pre>
+<p>として使うのとは少し違います。CSEでは、</p>
+<pre><code class="language-text">Empty Frog
+   ↓
+Learn
+   ↓
+Predict
+   ↓
+Inspect
+   ↓
+Learn More
+   ↓
+Predict Again
+</code></pre>
+<p>という成長過程そのものを触れます。</p>
+<hr />
+<h1 id="3-lm界のstable-diffusionという遊び方">3. 「LM界のStable Diffusion」という遊び方</h1>
+<p>[IDEA]</p>
+<p>これはCSEとStable Diffusionが同じアーキテクチャだという意味ではありません。似ているのは<strong>遊び方・拡張思想</strong>です。</p>
+<pre><code class="language-text">CSE Core
+ │
+ ├─ Pair Context
+ ├─ History
+ ├─ Slow Trace
+ ├─ Refractory
+ ├─ Top-K
+ ├─ Temperature
+ │
+ └─ External Extensions
+      ├─ Top-p
+      ├─ Retrieval
+      ├─ Surprise
+      ├─ Router
+      └─ Multi-Frog
+</code></pre>
+<p>[CODE]</p>
+<p><code>Frog</code>は生の候補scoreと確率を外へ出せるため、Top-pなどの出力ポリシーを外側から実装できます。</p>
+<p>つまり、</p>
+<blockquote>
+<p><strong>使うLMではなく、組んで育てるLM。</strong></p>
+</blockquote>
+<p>というのが、このHandbookでのCSEの見方です。</p>
+<hr />
+<h1 id="4-最初の">4. 最初の🐸</h1>
+<p>[CODE][DOC][EXP-C]</p>
+<pre><code class="language-python">from cse import Frog
+
+frog = Frog()
+
+frog.learn([
+    [&quot;右&quot;, &quot;右&quot;, &quot;下&quot;],
+    [&quot;右&quot;, &quot;右&quot;, &quot;下&quot;],
+    [&quot;右&quot;, &quot;右&quot;, &quot;下&quot;],
+])
+
+print(frog.predict([&quot;右&quot;, &quot;右&quot;]))
+</code></pre>
+<p>確認結果:</p>
+<pre><code class="language-text">下
+</code></pre>
+<p><code>Frog</code>はCourse Edition本体<code>ChainSpikeEngine</code>を初心者向けに包む薄い入口です。</p>
+<hr />
+<h1 id="5-の中身">5. 🐸の中身</h1>
+<p>[CODE]</p>
+<p>Course Editionには、</p>
+<ul>
+<li>Hebbian learning</li>
+<li>activation injection</li>
+<li>activation decay</li>
+<li>activation cap</li>
+<li>Top-K propagation</li>
+<li>activation history</li>
+<li>refractory inhibition</li>
+<li>ordered-pair context</li>
+<li>optional slow context trace</li>
+<li>softmax / linear probabilities</li>
+<li>sampled generation</li>
+<li>greedy generation</li>
+<li>teacher-forced scoring</li>
+</ul>
+<p>が存在します。大まかな流れは、</p>
+<pre><code class="language-text">Input
+ ↓
+Symbol / Node
+ ↓
+Learned Edges
+ ↓
+Contextual State
+ ↓
+Candidate Score
+ ↓
+Top-K
+ ↓
+Softmax / Linear
+ ↓
+Probability Distribution
+ ↓
+Prediction
+</code></pre>
+<p>です。</p>
+<hr />
+<h1 id="6-cseと大きなlmの機能対応">6. CSEと大きなLMの機能対応</h1>
+<p>[DOC]</p>
+<p>ここでいう「対応」は同じアルゴリズムという意味ではありません。</p>
+<table>
+<thead>
+<tr>
+<th>LM機能</th>
+<th>CSE</th>
+<th>Transformer系LM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>入力単位化</td>
+<td>Symbol / Frog mapping</td>
+<td>Tokenizer</td>
+</tr>
+<tr>
+<td>学習</td>
+<td>Hebbian edge update</td>
+<td>Gradient descent</td>
+</tr>
+<tr>
+<td>学習済み状態</td>
+<td>Edge weights</td>
+<td>Parameters</td>
+</tr>
+<tr>
+<td>文脈利用</td>
+<td>Activation / Pair Context / Trace</td>
+<td>Attention等</td>
+</tr>
+<tr>
+<td>候補評価</td>
+<td>Candidate score</td>
+<td>Logits</td>
+</tr>
+<tr>
+<td>確率化</td>
+<td>Softmax / Linear</td>
+<td>Softmax</td>
+</tr>
+<tr>
+<td>温度</td>
+<td><code>temperature</code></td>
+<td>Temperature</td>
+</tr>
+<tr>
+<td>候補制限</td>
+<td><code>top_k_edges</code></td>
+<td>Top-k</td>
+</tr>
+<tr>
+<td>反復抑制</td>
+<td>Refractory</td>
+<td>Repetition penalty等</td>
+</tr>
+<tr>
+<td>系列終了</td>
+<td><code>cse.END</code></td>
+<td>EOS</td>
+</tr>
+<tr>
+<td>出力選択</td>
+<td><code>predict()</code> / 外部Sampler</td>
+<td>Decoder / sampler</td>
+</tr>
+</tbody>
+</table>
+<p>特に、</p>
+<pre><code class="language-text">CSE Pair Context ≠ Self-Attention
+</code></pre>
+<p>です。ただし、</p>
+<blockquote>
+<p><strong>過去の文脈によって次予測を条件付ける</strong></p>
+</blockquote>
+<p>という機能領域では比較できます。</p>
+<hr />
+<h1 id="7-engine-capabilityとfrog-apiは別">7. Engine CapabilityとFrog APIは別</h1>
+<p>[CODE]</p>
+<p><code>_engine.py</code>には、</p>
+<pre><code class="language-text">generate()
+generate_greedy()
+score_text()
+</code></pre>
+<p>などがあります。しかし現在の<code>Frog</code>公開APIは、それらをそのまま公開していません。したがって、</p>
+<pre><code class="language-text">Course Engine
+     ↓
+Frog Public API
+     ↓
+User Extension
+</code></pre>
+<p>を区別します。現在の<code>Frog</code>で生成を行うなら、</p>
+<pre><code class="language-text">Frog
+ ↓
+probabilities()
+ ↓
+External Sampler
+ ↓
+next token
+ ↓
+loop
+</code></pre>
+<p>のように、自分でループを組みます。</p>
+<p>[IDEA]</p>
+<p>将来的な公開API候補:</p>
+<pre><code class="language-python">frog.generate(...)
+frog.score(...)
+</code></pre>
+<hr />
+<h1 id="8-config--の挙動を変える">8. Config — 🐸の挙動を変える</h1>
+<p>[CODE][DOC]</p>
+<pre><code class="language-python">frog = Frog(
+    temperature=1.5,
+    top_k_edges=5,
+    refractory_steps=0,
+)
+</code></pre>
+<p>Course Editionでは多数の内部Configを直接変更できます(全23項目は<code>REFERENCE.md</code>)。</p>
+<hr />
+<h1 id="9-temperature">9. Temperature</h1>
+<p>[CODE]</p>
+<pre><code class="language-python">Frog(temperature=0.05)
+Frog(temperature=0.8)
+Frog(temperature=10.0)
+</code></pre>
+<p>softmax時の温度です。概念的には、</p>
+<pre><code class="language-text">logits = scores / temperature
+softmax(logits)
+</code></pre>
+<p>です。</p>
+<p>[EXP-C]</p>
+<p>教材例では、</p>
+<pre><code class="language-text">temperature = 0.05
+→ 下 ≈ 1.0
+
+temperature = 10
+→ 下 ≈ 0.525
+</code></pre>
+<p>となりました。低温では分布が尖り、高温では平坦化します。</p>
+<hr />
+<h1 id="10-top-k">10. Top-K</h1>
+<p>[CODE]</p>
+<pre><code class="language-python">top_k_edges = 3
+</code></pre>
+<p>この設定は二つの役割を持ちます。</p>
+<h3 id="probability-top-k">Probability Top-K</h3>
+<p>候補scoreの上位K個だけを確率化します。</p>
+<h3 id="propagation-top-k">Propagation Top-K</h3>
+<p>各Nodeから活性を伝播させるEdgeも上位K本へ制限します。</p>
+<p>したがって<code>top_k_edges</code>は、単なる出力Sampler設定ではありません。</p>
+<blockquote>
+<p><strong>CSE内部の情報伝播量そのものにも影響するConfig</strong></p>
+</blockquote>
+<p>です。</p>
+<hr />
+<h1 id="11-refractory--何個前まで禁止する">11. Refractory — 何個前まで禁止する？</h1>
+<p>[CODE]</p>
+<pre><code class="language-python">Frog(refractory_steps=2)
+</code></pre>
+<p><code>refractory_steps</code>は、最近発火したNodeを何個前まで出力候補から禁止するかを決めます。</p>
+<p>一般的なrepetition penaltyのように「少し点数を下げる」のではなく、対象候補のscoreを0にします。つまり、</p>
+<pre><code class="language-text">soft penalty
+</code></pre>
+<p>というより、</p>
+<pre><code class="language-text">temporary ban
+</code></pre>
+<p>に近い仕組みです。</p>
+<p>[EXP-C]</p>
+<p>同じ学習データに対して<code>refractory_steps</code>だけを変えると、次のようになりました。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><code>refractory_steps</code></th>
+<th>「右右」の次</th>
+<th>「右右下」の次</th>
+<th>何が禁止されたか</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><code>0</code></td>
+<td>下 0.777 / 右 0.223</td>
+<td>右 0.865</td>
+<td>何も禁止されない</td>
+</tr>
+<tr>
+<td style="text-align: right;"><code>1</code></td>
+<td>下 1.0</td>
+<td>右 0.865</td>
+<td>直前の1個だけ</td>
+</tr>
+<tr>
+<td style="text-align: right;"><code>2</code></td>
+<td>下 1.0</td>
+<td><code>&lt;END&gt;</code> 1.0</td>
+<td>直前の2個。「右右下」の後でも右が出せない</td>
+</tr>
+<tr>
+<td style="text-align: right;"><code>5</code></td>
+<td>下 1.0</td>
+<td><code>&lt;END&gt;</code> 1.0</td>
+<td>この例では<code>2</code>と同じ</td>
+</tr>
+</tbody>
+</table>
+<p>この表から二つのことが分かります。</p>
+<h3 id="top-1だけ見ていると変化を見逃す">Top-1だけ見ていると変化を見逃す</h3>
+<p><code>refractory_steps=0</code>と<code>1</code>では、<code>右右 → 下</code>というTop-1 prediction自体は同じです。しかし分布は、</p>
+<pre><code class="language-text">steps=0:
+下 0.777 / 右 0.223
+
+steps=1:
+下 1.0
+</code></pre>
+<p>へ変わっています。</p>
+<blockquote>
+<p><strong>predict()の答えが同じでも、内部の選択肢は変化している。</strong></p>
+</blockquote>
+<h3 id="1と2では壊れる場所が変わる">1と2では「壊れる場所」が変わる</h3>
+<p><code>steps=1</code>なら直前の1記号だけが禁止されるため、<code>右 → 右 → 下</code>の後では<code>右</code>を再び出せます。</p>
+<p>ところが<code>steps=2</code>では直前2個に<code>右</code>が含まれるため、<code>右右下 → 右</code>という必要な繰返しまで禁止され、<code>&lt;END&gt; = 1.0</code>になりました。</p>
+<blockquote>
+<p><strong>Configを1だけ変えると、モデルが壊れる位置そのものが変わる。</strong></p>
+</blockquote>
+<hr />
+<h1 id="12-pair-context">12. Pair Context</h1>
+<p>[CODE]</p>
+<pre><code class="language-text">pair_context_capacity
+pair_context_boost
+</code></pre>
+<p>CSEは直前2つの記号の組を覚えます。<code>右 → 右 → 下</code>なら、</p>
+<pre><code class="language-text">(&quot;右&quot;, &quot;右&quot;) → &quot;下&quot;
+</code></pre>
+<p>という情報を保持できます。</p>
+<p>[EXP-C]</p>
+<p>Pair Contextを切ると、</p>
+<pre><code class="language-text">下 0.5
+右 0.5
+</code></pre>
+<p>となり、この教材例では候補を区別できなくなりました。Pair Contextの効果を見る非常に分かりやすいablationです。</p>
+<hr />
+<h1 id="13-slow-context-trace">13. Slow Context Trace</h1>
+<p>[CODE]</p>
+<pre><code class="language-text">context_trace_decay
+context_projection_boost
+</code></pre>
+<p>Slow Traceはactivationそのものを保存する機構ではありません。Course Editionでは、</p>
+<pre><code class="language-text">context_trace *= decay
+context_trace[appeared_symbol] += 1
+</code></pre>
+<p>という形で、</p>
+<blockquote>
+<p><strong>過去に出現した記号の痕跡</strong></p>
+</blockquote>
+<p>を別状態として保持します。その痕跡をEdge構造へ投影し、候補scoreへ加算します。</p>
+<p>[DOC]</p>
+<p>Course Editionではデフォルト無効です。</p>
+<p>[EXP-C]</p>
+<p>単純な「右右下」教材例では、Slow TraceをONにしても予測結果に変化はありませんでした。</p>
+<p>[EXP-R]</p>
+<p>Research EditionのQ57gおよび097–100では、研究版Trace機構は概ね負方向または明確な利得なしという結果でした。ただしResearch EditionのTraceには、Course Editionにはない追加機構があります。したがって、</p>
+<blockquote>
+<p><strong>Research EditionでのTrace結果を、そのままCourse EditionのSlow Trace性能とみなしてはいけません。</strong></p>
+</blockquote>
+<p>現在言えるのは、</p>
+<pre><code class="language-text">Course Edition:
+教材例では変化なし
+
+Research Edition:
+追加機構を含むTrace構成で主に負方向
+</code></pre>
+<p>です。</p>
+<p>[IDEA]</p>
+<p>どんな系列条件ならCourse EditionのSlow Traceが有効になるかは、良い探索課題です。</p>
+<hr />
+<h1 id="14-の頭を見る">14. 🐸の頭を見る</h1>
+<p>[CODE]</p>
+<pre><code class="language-python">frog.show(prefix)
+</code></pre>
+<p>候補ごとに、</p>
+<pre><code class="language-text">direct
+history
+pair
+trace
+score
+probability
+</code></pre>
+<p>を確認できます。概念的には、</p>
+<pre><code class="language-text">score =
+    direct
+  + history
+  + pair
+  + trace
+</code></pre>
+<p>です(不応期で禁止された候補は0)。<code>explain()</code>では、この内訳の合計がEngine本体のscoreと一致することを毎回検査しています。</p>
+<p>CSEでは「何がこの予測scoreを作ったか」を直接観察できます。</p>
+<hr />
+<h1 id="15-frog-presets">15. Frog Presets</h1>
+<h2 id="vanilla-frog">Vanilla Frog</h2>
+<p>[DOC]</p>
+<pre><code class="language-python">Frog()
+</code></pre>
+<h2 id="cold-frog">Cold Frog</h2>
+<p>[EXP-C]</p>
+<pre><code class="language-python">Frog(
+    temperature=0.05
+)
+</code></pre>
+<p>候補差を強調します。</p>
+<h2 id="hot-frog">Hot Frog</h2>
+<p>[EXP-C]</p>
+<pre><code class="language-python">Frog(
+    temperature=10.0
+)
+</code></pre>
+<p>候補分布を平坦化します。</p>
+<h2 id="no-context-frog">No-Context Frog</h2>
+<p>[EXP-C]</p>
+<pre><code class="language-python">Frog(
+    pair_context_capacity=0,
+    pair_context_boost=0,
+)
+</code></pre>
+<p>教材例では<code>下 0.5 / 右 0.5</code>となりました。</p>
+<h2 id="forgetful-frog">Forgetful Frog</h2>
+<p>単純に、</p>
+<pre><code class="language-python">frog.learn(dataset_a)
+frog.learn(dataset_b)
+</code></pre>
+<p>とするだけでは、古い予測が変化しない場合があります。例えば、</p>
+<pre><code class="language-text">A:
+朝 → 起きる → 歯磨き
+
+B:
+夜 → 寝る → 夢
+</code></pre>
+<p>のようにAとBが別のPrefixを使っている場合です。AのEdge weightが弱くなっていても、<code>朝 → 起きる</code>の次候補が依然として<code>歯磨き</code>しか存在しなければ、</p>
+<pre><code class="language-text">P(歯磨き) = 1.0
+</code></pre>
+<p>のままです。</p>
+<blockquote>
+<p><strong>重みが弱くなることと、正規化後の確率が変わることは同じではありません。</strong></p>
+</blockquote>
+<p>忘却を観察するには、同じPrefixから別のContinuationを競合させます。</p>
+<p>[EXP-C]</p>
+<pre><code class="language-python">from cse import Frog
+
+A = [[&quot;朝&quot;, &quot;起きる&quot;, &quot;歯磨き&quot;] * 4]
+B = [[&quot;朝&quot;, &quot;起きる&quot;, &quot;二度寝&quot;] * 4]
+
+frog = Frog(weight_decay=0.99)
+
+frog.learn(A, epochs=10)
+frog.learn(B, epochs=3)
+
+print(frog.top([&quot;朝&quot;, &quot;起きる&quot;]))
+</code></pre>
+<p>確認された結果:</p>
+<table>
+<thead>
+<tr>
+<th><code>weight_decay</code></th>
+<th>Bを3epoch追加後</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>1.0</code></td>
+<td>歯磨き ≈ 0.985</td>
+</tr>
+<tr>
+<td><code>0.9995</code></td>
+<td>歯磨き ≈ 0.981</td>
+</tr>
+<tr>
+<td><code>0.99</code></td>
+<td>歯磨き ≈ 0.79 / 二度寝 ≈ 0.21</td>
+</tr>
+</tbody>
+</table>
+<p>さらにraw scoreでは、古い候補の絶対scoreも<code>3.26 → 2.29</code>へ低下しました(<code>weight_decay=0.99</code>)。</p>
+<blockquote>
+<p><strong>忘却は「重みが減った」だけでは出力に見えない。競合候補が現れたとき、初めて確率分布上に見えやすくなる。</strong></p>
+</blockquote>
+<h2 id="trace-frog">Trace Frog</h2>
+<p>[CODE]</p>
+<pre><code class="language-python">Frog(
+    context_trace_decay=0.8,
+    context_projection_boost=0.5,
+)
+</code></pre>
+<p>[EXP-C]</p>
+<p>単純な教材系列では結果が変わらない場合があります。</p>
+<blockquote>
+<p><strong>機構を有効化したことと、そのDatasetで役立ったことは別です。</strong></p>
+</blockquote>
+<hr />
+<h1 id="16-top-pを追加する">16. Top-pを追加する</h1>
+<p>[CODE][DOC]</p>
+<pre><code class="language-python">frog.scores(...)
+frog.probabilities(...)
+</code></pre>
+<p>を使えばSamplerを外部実装できます。</p>
+<pre><code class="language-python">import random
+
+def top_p(frog, prefix, p=0.9):
+    items = sorted(
+        frog.probabilities(prefix).items(),
+        key=lambda kv: -kv[1],
+    )
+
+    keep = []
+    total = 0.0
+
+    for token, prob in items:
+        keep.append((token, prob))
+        total += prob
+
+        if total &gt;= p:
+            break
+
+    tokens, weights = zip(*keep)
+
+    return random.choices(
+        tokens,
+        weights=weights,
+    )[0]
+</code></pre>
+<hr />
+<h1 id="17-sampler-pack">17. Sampler Pack</h1>
+<p>[IDEA]</p>
+<p>Frog APIだけでも、</p>
+<pre><code class="language-text">Greedy
+Top-p
+Weighted Random
+Temperature + Top-p
+Custom Rules
+</code></pre>
+<p>などの出力ポリシーを作れます。ただし現在のFrogには、<code>frog.generate(...)</code>という標準公開APIはありません。</p>
+<hr />
+<h1 id="18-を育てる">18. 🐸を育てる</h1>
+<p>[CODE][DOC]</p>
+<pre><code class="language-python">frog.learn(dataset_a)
+frog.predict(...)
+
+frog.learn(dataset_b)
+frog.predict(...)
+</code></pre>
+<p>という逐次学習ができます。さらに、</p>
+<pre><code class="language-python">frog.save(&quot;my_frog.cse&quot;)
+frog = Frog.load(&quot;my_frog.cse&quot;)
+frog.learn(dataset_c)
+</code></pre>
+<p>と、保存後も続きを学習できます(保存形式はpickleを使わず、JSONと数値配列のzip)。</p>
+<hr />
+<h1 id="19-ragっぽい構成">19. RAGっぽい構成</h1>
+<p>[IDEA]</p>
+<pre><code class="language-text">Query
+ ↓
+External Retriever
+ ↓
+Relevant Knowledge
+ ↓
+CSE
+ ↓
+Prediction
+</code></pre>
+<p>という構成を考えられます。ただし、</p>
+<blockquote>
+<p><strong>CSE自身をRetrieverとして使う</strong></p>
+</blockquote>
+<p>方向には既存の否定的証拠があります。</p>
+<p>[EXP-R]</p>
+<p>研究Q94では、Research Edition CSEによるquery-conditioned retrievalはTF-IDFに大きく負けました。</p>
+<pre><code class="language-text">CSE R@1   ≈ 0.125
+TF-IDF    ≈ 0.814
+</code></pre>
+<p>したがって現時点では、</p>
+<pre><code class="language-text">❌ CSEに検索まで全部やらせる
+
+✅ Retrievalは検索が得意な手法へ任せる
+   CSEは別の役割を担当する
+</code></pre>
+<p>という設計の方が研究結果と整合します。</p>
+<hr />
+<h1 id="20-anomaly-frog">20. Anomaly Frog</h1>
+<p>[IDEA]</p>
+<p>例えば、</p>
+<pre><code class="language-text">Normal:
+A → B → C
+
+Observed:
+A → B → X
+</code></pre>
+<p>で<code>P(X | A,B)</code>が低ければ、</p>
+<pre><code class="language-text">Surprise = -log2(P)
+</code></pre>
+<p>として驚き量を計算できます。</p>
+<p>[CODE]</p>
+<p>現在の<code>Frog</code>には、<code>frog.surprise(...)</code>という公開APIはありません。現状では、</p>
+<pre><code class="language-python">probs = frog.probabilities(prefix)
+p = probs.get(actual, 0.0)
+</code></pre>
+<p>から自分で計算します。</p>
+<p>[IDEA]</p>
+<p>次期API候補:</p>
+<pre><code class="language-python">frog.surprise(
+    prefix=[&quot;正常&quot;, &quot;正常&quot;],
+    actual=&quot;異常&quot;,
+)
+</code></pre>
+<p>[EXP-R]</p>
+<p>100-question challengeでは、CSEは「系列の変化・異常を見る」方向で特徴的な結果を示しました。ただしこれはResearch Editionの結果であり、Course Editionの<code>Frog</code>で同一性能が保証されるという意味ではありません。</p>
+<hr />
+<h1 id="21--on---cse-colony">21. 🐸 on 🐸 / CSE Colony</h1>
+<p>[IDEA]</p>
+<pre><code class="language-text">        Router Frog
+        /    |    \
+       /     |     \
+  Frog A   Frog B   Frog C
+       \     |     /
+        \    |    /
+         Selector
+</code></pre>
+<p>のような複数CSE構成を作ることはできます。しかし性能主張とは分離します。</p>
+<p>[EXP-R]</p>
+<ul>
+<li>H-COL-1では、Colonyの改善は与えられたラベル情報で説明でき、同じラベルを利用するcountingでも同等でした。</li>
+<li>H-COL-2では、同じラベル情報を単体モデルへ与えるとColonyと同スコアになりました。</li>
+<li>H-COL-3では、確率推定の質についてcounting baselineがColonyを上回りました。</li>
+</ul>
+<p>したがって、</p>
+<blockquote>
+<p><strong>複数Frog化そのものによる性能優位は、現時点では確認されていません。</strong></p>
+</blockquote>
+<p>それでも、</p>
+<p>[IDEA]</p>
+<ul>
+<li>分業</li>
+<li>Router設計</li>
+<li>Agent構成</li>
+<li>Failure isolation</li>
+<li>Modularity</li>
+</ul>
+<p>を試す教材・研究テーマとしては面白いです。</p>
+<blockquote>
+<p><strong>🐸 on 🐸は面白い。だが、今のところ強いとは言っていない。</strong></p>
+</blockquote>
+<hr />
+<h1 id="22-agent-frog">22. Agent Frog</h1>
+<p>[IDEA]</p>
+<p>CSEの記号は自然言語である必要はありません。例えば、</p>
+<pre><code class="language-python">[
+    &quot;SEARCH&quot;,
+    &quot;READ&quot;,
+    &quot;CHECK&quot;,
+    &quot;ANSWER&quot;,
+]
+</code></pre>
+<p>のような行動系列も扱えます。</p>
+<pre><code class="language-text">Current State
+ ↓
+CSE
+ ↓
+Next Action Symbol
+ ↓
+External Tool
+ ↓
+New State
+</code></pre>
+<p>というAgent-like構成を試すことはできます。ただし現在のCourse Editionに、</p>
+<ul>
+<li>Tool runtime</li>
+<li>Planner</li>
+<li>Agent loop</li>
+<li>Permission system</li>
+</ul>
+<p>が標準搭載されているわけではありません。</p>
+<hr />
+<h1 id="23-cseが苦手なこと">23. CSEが苦手なこと</h1>
+<p>[DOC]</p>
+<p>現在の講座版は基本的に局所系列予測器です。遠距離文脈や検索などは得意ではありません。</p>
+<p>[EXP-R]</p>
+<p>Research Editionの比較では、n-gramなどの既存手法に対して、精度・速度・メモリ・較正等の古典的評価軸で一般的な比較優位は確認されていません。</p>
+<p>またH-COL-3では、確率分布について、</p>
+<blockquote>
+<p><strong>正解以外の動詞へ約36%の確率質量を与える</strong></p>
+</blockquote>
+<p>挙動が確認されました。これは「情報を36%失った」という意味ではありません。</p>
+<blockquote>
+<p><strong>確率massが誤った候補へ漏れている</strong></p>
+</blockquote>
+<p>という意味です。</p>
+<p>[EXP-R]</p>
+<p>H-LEAK-1は事後監査をPASSし、結果が凍結されました。漏れた<strong>確率質量</strong>(正解以外の候補へ行った確率)を、確率を作る3つの成分に分けると、</p>
+<pre><code class="language-text">direct(今の記号「を」だけを見る)  : 約87〜91%
+backoffの混合(全候補に薄く配る)   : 約9〜13%
+pair(「N_FOOD を」の並び)         : 0   ← 正解のカテゴリだけを指していた
+</code></pre>
+<p>でした。この条件では、</p>
+<pre><code class="language-text">「を」
+ ↓
+複数カテゴリの動詞へdirect edge
+</code></pre>
+<p>という構造により、直前1記号だけを見る<code>direct</code>成分が複数カテゴリの動詞へscoreを広げていました。一方、Pair Contextは正解のカテゴリだけを指していました。</p>
+<p>これはCourse Editionでも、</p>
+<pre><code class="language-text">score =
+ direct
+ + pair
+ + ...
+</code></pre>
+<p>という基本構造を<code>show()</code>で観察できるため、非常に良い教材テーマになります。ただし、</p>
+<blockquote>
+<p><strong>87〜91%という数値はResearch Editionの特定実験条件(107構成、backoffの混合あり)で得られた結果</strong></p>
+</blockquote>
+<p>であり、Course Edition(backoffの混合なし)のすべてのDatasetで同じ割合になるという意味ではありません。介入はしていないので、「directが原因」とまでは言っていません。</p>
+<hr />
+<h1 id="24-cseが面白いところ">24. CSEが面白いところ</h1>
+<h2 id="observable">Observable</h2>
+<p>[CODE]</p>
+<p>Edge、score、context contributionを直接観察できます。</p>
+<h2 id="incremental">Incremental</h2>
+<p>[CODE]</p>
+<p>あとから追加学習できます。</p>
+<h2 id="configurable">Configurable</h2>
+<p>[CODE]</p>
+<p>内部挙動をConfigで変更できます。</p>
+<h2 id="composable">Composable</h2>
+<p>[CODE][IDEA]</p>
+<p>score / probabilitiesを外へ出し、Samplerや外部処理を追加できます。</p>
+<h2 id="hackable">Hackable</h2>
+<p>[DOC]</p>
+<p>中身を見て、壊して学ぶための設計です。</p>
+<h2 id="manageably-small">Manageably Small</h2>
+<p>[CODE]</p>
+<p>単純に「小さい」とだけ言うより、</p>
+<blockquote>
+<p><strong>内部状態を人間が直接追跡・観察しやすい規模</strong></p>
+</blockquote>
+<p>と表現する方が正確です。<code>max_nodes</code>を増やすと主要matrixのサイズは概ね二乗で増えます。</p>
+<hr />
+<h1 id="25-失敗も結果">25. 失敗も結果</h1>
+<p>このHandbookでは、</p>
+<pre><code class="language-text">Extension ON
+ ↓
+性能向上！
+</code></pre>
+<p>だけを成功とはしません。</p>
+<pre><code class="language-text">Trace ON
+ ↓
+変化なし
+</code></pre>
+<p>も結果。</p>
+<pre><code class="language-text">Colony
+ ↓
+単体と差なし
+</code></pre>
+<p>も結果。</p>
+<pre><code class="language-text">CSE Retriever
+ ↓
+TF-IDFに負けた
+</code></pre>
+<p>も結果です。さらに、</p>
+<pre><code class="language-text">weight_decayを強くした
+ ↓
+weightは減った
+ ↓
+でも候補が1つなので確率は100%のまま
+</code></pre>
+<p>も重要な結果です。そして、<code>refractory_steps</code>を<code>0 → 1</code>ではTop-1は同じでも分布が変わり、<code>1 → 2</code>では正常な繰返しそのものが禁止されました。</p>
+<p>目的は、</p>
+<blockquote>
+<p><strong>何を変えると、どの内部量が変わり、それがいつ出力へ現れるのかを見ること。</strong></p>
+</blockquote>
+<p>です。</p>
+<hr />
+<h1 id="26-modding-tree">26. Modding Tree</h1>
+<pre><code class="language-text">CSE Core
+│
+├─ Learning Mods
+│   ├─ learning_rate
+│   ├─ weight_decay
+│   └─ temporal learning
+│
+├─ Context Mods
+│   ├─ pair context
+│   ├─ history
+│   └─ slow trace
+│
+├─ Prediction Mods
+│   ├─ Top-K
+│   ├─ temperature
+│   └─ probability mode
+│
+├─ Output Extensions
+│   ├─ Top-p
+│   ├─ custom sampler
+│   └─ generation loop
+│
+├─ Analysis Extensions
+│   ├─ surprise
+│   ├─ anomaly score
+│   └─ calibration
+│
+├─ External Systems
+│   ├─ Retriever
+│   ├─ Memory
+│   └─ Tools
+│
+└─ Multi-CSE
+    ├─ Router
+    ├─ Colony
+    └─ Agent-like systems
+</code></pre>
+<hr />
+<h2 id="の先へ-足せる部品と足せない部品">🐸の先へ: 足せる部品と、足せない部品</h2>
+<p>🐸には、大きなLLMの部品のいくつかが<strong>わざと入っていません</strong>。外したものには2種類あります。</p>
+<table>
+<thead>
+<tr>
+<th>🐸の点数表の上に、自分で足せる部品</th>
+<th>🐸には足せない部品(別の小さなモデルで組む)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>top-p / top-k(自作サンプラー)</td>
+<td>アテンション(遠くの文脈をベクトルで照合する)</td>
+</tr>
+<tr>
+<td>繰り返しペナルティ(→ Experiment 11)</td>
+<td>埋め込み(記号をベクトルにする)</td>
+</tr>
+<tr>
+<td>チャンク(よく出る組を1記号にまとめる = BPEの発想)</td>
+<td>勾配降下(損失から重みを直す)</td>
+</tr>
+<tr>
+<td>少し遠い並びを覚える仕組み</td>
+<td>層を積む・残差接続</td>
+</tr>
+</tbody>
+</table>
+<p>左の列は、🐸の<strong>点数の足し算と確率の計算の上に載る</strong>部品です。足したら、<code>show()</code>や<code>explain()</code>で「自分で組んだものが、なぜ予測を変えたか」まで追えます。</p>
+<p>右の列は、🐸の点数表には<strong>足せません</strong>。🐸が持っているのは記号どうしの結びつきの強さ(数1つ)だけで、ベクトルも損失もないからです。
+top-pの延長でアテンションも足せそうに見えますが、ここで詰まります。</p>
+<blockquote>
+<p><strong>次の一歩</strong>: 🐸で「点数 → 確率 → 選ぶ」とツマミの干渉を体で覚えたら、同じ「次を予測する」を、nanoGPTのような小さなTransformerで組んでみてください。そこで初めて、アテンションと勾配降下が何をしているのかが見えます。</p>
+</blockquote>
+<p>外したのは抜けではなく、<strong>順番</strong>です。</p>
+<hr />
+<h1 id="27-recommended-experiments">27. Recommended Experiments</h1>
+<h2 id="experiment-01--cold-vs-hot">Experiment 01 — Cold vs Hot</h2>
+<p>Temperatureを変更する。</p>
+<h2 id="experiment-02--remove-pair-context">Experiment 02 — Remove Pair Context</h2>
+<p>Pair Contextを切り、曖昧化を見る。</p>
+<h2 id="experiment-03--refractory-ladder">Experiment 03 — Refractory Ladder</h2>
+<p><code>refractory_steps = 0, 1, 2, 5</code>を順番に変更し、二つのPrefix(<code>右右</code>、<code>右右下</code>)を同時に測定して、</p>
+<ul>
+<li>Top-1</li>
+<li>probability distribution</li>
+<li>blocked candidate</li>
+</ul>
+<p>を比較する。目的は、</p>
+<blockquote>
+<p><strong>何個前まで禁止すると、どの位置から系列が壊れるか</strong></p>
+</blockquote>
+<p>を見ることです。</p>
+<h2 id="experiment-04--competitive-forgetting">Experiment 04 — Competitive Forgetting</h2>
+<pre><code class="language-text">A:
+朝 → 起きる → 歯磨き
+
+B:
+朝 → 起きる → 二度寝
+</code></pre>
+<p>のように同一Prefixで競合させる。さらに<code>probabilities()</code>と<code>scores()</code>の両方を記録し、</p>
+<blockquote>
+<p><strong>絶対scoreの低下と正規化後確率の変化</strong></p>
+</blockquote>
+<p>を別々に見る。</p>
+<h2 id="experiment-05--trace-ablation">Experiment 05 — Trace Ablation</h2>
+<p>Slow Trace ON/OFFで比較。「変化なし」も保存。</p>
+<h2 id="experiment-06--top-p-extension">Experiment 06 — Top-p Extension</h2>
+<p>外部Samplerを追加。</p>
+<h2 id="experiment-07--surprise-extension">Experiment 07 — Surprise Extension</h2>
+<p><code>-log2(p)</code>を計算。</p>
+<h2 id="experiment-08--external-retrieval">Experiment 08 — External Retrieval</h2>
+<p>TF-IDF / BM25等と接続。</p>
+<h2 id="experiment-09--single-frog-vs-colony">Experiment 09 — Single Frog vs Colony</h2>
+<p>必ず、<strong>同じ情報を持つ単体モデル</strong>をbaselineに置く。</p>
+<h2 id="experiment-10--direct-vs-pair-leakage">Experiment 10 — Direct vs Pair Leakage</h2>
+<p>[IDEA]</p>
+<p>同じ直前Tokenを共有し、より前の文脈だけが異なる系列を学習させ、<code>direct</code>・<code>pair</code>・final probabilityを<code>explain()</code>で比較する。</p>
+<p>[EXP-R]</p>
+<p>Research EditionではH-LEAK-1により、漏れた確率質量のうち</p>
+<pre><code class="language-text">direct         ≈ 87〜91%
+backoffの混合  ≈ 9〜13%
+pair           = 0
+</code></pre>
+<p>という偏りが確認されています。Course Editionで同様の現象を再現できるかは、別途実験します。</p>
+<h2 id="experiment-11--柔らかい繰り返しペナルティ禁止-vs-減点">Experiment 11 — 柔らかい繰り返しペナルティ(禁止 vs 減点)</h2>
+<p>[EXP-C][EXP-R]</p>
+<p>不応期(<code>refractory_steps</code>)は、最近出た記号の点数を<strong>0にする(禁止)</strong>仕組みです。そのため、正解に近い距離の繰り返しがあると、正しい記号まで消してしまいます。
+LLMの繰り返しペナルティのように、<strong>禁止せず、点数を割り算で下げる(減点)</strong>とどうなるかを、自分で部品を作って確かめます。</p>
+<pre><code class="language-python">import math
+from cse import Frog
+
+data = [[&quot;右&quot;, &quot;右&quot;, &quot;下&quot;, &quot;右&quot;, &quot;左&quot;]] * 3 + [[&quot;右&quot;, &quot;右&quot;, &quot;下&quot;, &quot;上&quot;, &quot;左&quot;]] * 1
+prefix = [&quot;右&quot;, &quot;右&quot;, &quot;下&quot;]           # 次の正解は 4回中3回「右」(距離2の繰り返し)
+
+def soft_penalty(frog, prefix, theta, window=2):
+    &quot;&quot;&quot;直近 window 個に出た記号の点数を theta で割ってから、🐸と同じ方法で確率にする(自作の部品)。&quot;&quot;&quot;
+    recent = set(list(prefix)[-window:])
+    sc = {s: (v / theta if s in recent else v) for s, v in frog.scores(prefix).items() if v &gt; 0}
+    top = sorted(sc.items(), key=lambda kv: -kv[1])[:frog.config.top_k_edges]
+    t = frog.config.temperature
+    m = max(v for _, v in top)
+    ex = {s: math.exp((v - m) / t) for s, v in top}
+    z = sum(ex.values())
+    return sorted(((s, e / z) for s, e in ex.items()), key=lambda kv: -kv[1])
+
+frog = Frog().learn(data)                                   # 抑制なし(refractory_steps=0)
+print(frog.top(prefix))
+print(Frog(refractory_steps=2).learn(data).top(prefix))     # 禁止
+for theta in (1.5, 4, 100):
+    print(theta, soft_penalty(frog, prefix, theta))         # 減点
+</code></pre>
+<p>確認結果([EXP-C]):</p>
+<table>
+<thead>
+<tr>
+<th>抑え方</th>
+<th>「右右下」の次</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>抑制なし(<code>refractory_steps=0</code>)</td>
+<td><strong>右 0.796</strong> / 上 0.204</td>
+</tr>
+<tr>
+<td>禁止(<code>refractory_steps=2</code>)</td>
+<td>上 1.0(右は消える)</td>
+</tr>
+<tr>
+<td>自作の減点 θ=1.5</td>
+<td><strong>右 0.663</strong> / 上 0.337</td>
+</tr>
+<tr>
+<td>自作の減点 θ=4</td>
+<td>上 0.543 / 右 0.457 ← <strong>1位がひっくり返る</strong></td>
+</tr>
+<tr>
+<td>自作の減点 θ=100</td>
+<td>上 0.66 / 右 0.34 ← <strong>それでも「禁止」にはならない</strong></td>
+</tr>
+</tbody>
+</table>
+<p>ここから、2つのことが分かります。</p>
+<ol>
+<li><strong>減点を少し強くしただけで、正しい繰り返しが負ける。</strong> 部品は「足せば効く」のではなく、ほかの候補との点数の大きさの関係で効き方が決まります。</li>
+<li><strong>θをどれだけ大きくしても、「禁止」にはならない。</strong> 🐸は点数がプラスの記号を候補として残すので、割り算でどれだけ小さくしても、0にしない限り消えません。「減点を強くした極限が禁止」と考えると、ここでつまずきます。</li>
+</ol>
+<p>[EXP-R]</p>
+<p>Research Editionでは、H-GEN-3で同じ問いを事前登録して試しました(正解に近い距離の繰り返しを含む400プロンプト、θ=4)。</p>
+<pre><code class="language-text">減点(θ=4) vs 禁止       → 差を検出せず(全40ユニットで同点)
+減点(θ=4) vs 抑制なし   → 差を検出せず
+</code></pre>
+<p>記述として、θ=4の減点は400中392で禁止と同じ生成になり、距離2の繰り返しに到達した40件で、正解を選んだのは0件でした(抑制なしは32件中17件)。また、繰り返しのある課題の約76%は、最初の繰り返しの位置に届く前に崩れていました。
+つまり研究版では、<strong>この設定・θ=4では、減点は禁止と区別できる差を生みませんでした</strong>。</p>
+<p>研究版とCourse Editionは構成が違う(履歴の項・確率の混ぜ方など)ので、数字は直接比べません。共通して見えるのは「割り算の減点は、強さしだいで禁止とほとんど同じになるが、禁止そのものにはならない」ことです。</p>
+<hr />
+<h1 id="28-handbookの研究ルール">28. Handbookの研究ルール</h1>
+<p>Modを追加するときは、</p>
+<pre><code class="language-text">1. Baselineを作る
+2. 変更点を1つにする
+3. 同じDatasetで比較する
+4. Configを保存する
+5. scoreとprobabilityを混同しない
+6. Top-1だけでなく分布も見る
+7. 失敗結果も残す
+8. Course / Research Editionを区別する
+9. [CODE]/[DOC]/[EXP-C]/[EXP-R]/[IDEA]を付ける
+</code></pre>
+<p>ことを推奨します。特に重要なのが、</p>
+<blockquote>
+<p><strong>Top-1が同じでも、内部scoreや確率分布は変化している可能性がある。</strong></p>
+</blockquote>
+<p>という点です。RefractoryとForgetful Frogの両方が、その良い例です。</p>
+<hr />
+<h1 id="29-cseの最終的な見方">29. CSEの最終的な見方</h1>
+<pre><code class="language-text">              Extensions
+                  │
+      ┌───────────┼───────────┐
+      │           │           │
+   Sampler      Memory      Analysis
+      │           │           │
+      └───────────┼───────────┘
+                  │
+               CSE Core
+                  │
+       Learn / State / Predict
+</code></pre>
+<p>CSEは現在、</p>
+<blockquote>
+<p><strong>最も正確なLanguage Model</strong></p>
+</blockquote>
+<p>ではありません。</p>
+<blockquote>
+<p><strong>最も巨大なLanguage Model</strong></p>
+</blockquote>
+<p>でもありません。このHandbookで重視するのは、</p>
+<blockquote>
+<p><strong>中身を理解しながら、構成を変え、能力を足し、失敗まで観察できるLanguage Modelの素体</strong></p>
+</blockquote>
+<p>としての性格です。</p>
+<hr />
+<h1 id="appendix-a--ドキュメントの役割">Appendix A — ドキュメントの役割</h1>
+<pre><code class="language-text">README.md
+ └─ 🐸とは何か
+
+docs/REFERENCE.md
+ └─ API / Configの正確な仕様
+
+docs/HANDBOOK.md
+ └─ 遊び方
+    壊し方
+    改造方法
+    実験方法
+
+Research Reports
+ └─ Benchmarks
+    Ablations
+    Failure Cases
+    Comparative Experiments
+</code></pre>
+<hr />
+<h1 id="appendix-b--capability-status">Appendix B — Capability Status</h1>
+<table>
+<thead>
+<tr>
+<th>機能</th>
+<th style="text-align: right;">Engine</th>
+<th style="text-align: right;">Frog API</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>学習</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">✅</td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td>Next-symbol prediction</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">✅</td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td>Probability distribution</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">✅</td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td>Score inspection</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">✅</td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td>Pair Context</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">Config経由</td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td>Slow Trace</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">Config経由</td>
+<td>[CODE][EXP-C: 教材例で変化なし]</td>
+</tr>
+<tr>
+<td>Research Trace</td>
+<td style="text-align: right;">Researchのみ拡張あり</td>
+<td style="text-align: right;">—</td>
+<td>[EXP-R: 主に負方向]</td>
+</tr>
+<tr>
+<td>Refractory</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">Config経由</td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td>Save / Load</td>
+<td style="text-align: right;">Wrapper実装</td>
+<td style="text-align: right;">✅</td>
+<td>[CODE][EXP-C]</td>
+</tr>
+<tr>
+<td>Sample generation</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">❌ direct API</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td>Greedy generation</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">❌ direct API</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td>Teacher-forced scoring</td>
+<td style="text-align: right;">✅</td>
+<td style="text-align: right;">❌ direct API</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td>Top-p</td>
+<td style="text-align: right;">❌ built-in</td>
+<td style="text-align: right;">外部実装可能</td>
+<td>[CODE]</td>
+</tr>
+<tr>
+<td>Surprise</td>
+<td style="text-align: right;">❌ public API</td>
+<td style="text-align: right;">❌</td>
+<td>[IDEA]</td>
+</tr>
+<tr>
+<td>Retrieval</td>
+<td style="text-align: right;">❌ standard</td>
+<td style="text-align: right;">❌</td>
+<td>[EXP-R: CSE retriever不利]</td>
+</tr>
+<tr>
+<td>Colony</td>
+<td style="text-align: right;">Python上で可能</td>
+<td style="text-align: right;">複数Frog可能</td>
+<td>[EXP-R: 性能優位未確認]</td>
+</tr>
+<tr>
+<td>Agent runtime</td>
+<td style="text-align: right;">❌</td>
+<td style="text-align: right;">❌</td>
+<td>[IDEA]</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="closing">Closing</h1>
+<p>🐸は、何でもできるから面白いのではありません。</p>
+<p><strong>何をすると、何が変わって、何が変わらず、なぜそうなったかを見られる。</strong></p>
+<p>そこが面白い。</p>
+<pre><code class="language-text">Build.
+Teach.
+Inspect.
+Break.
+Measure.
+Modify.
+Repeat.
+</code></pre>
+<p><strong>Welcome to CSE Modding. 🐸🔧</strong></p>
+  </main>
+</div>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div>cse-frog — MIT License. © 2026 Emilia Lab / 鍵乃ねこ (kagioneko)</div>
+    <nav aria-label="外部リンク">
+      <a href="https://github.com/kagioneko/cse-frog">GitHub</a>
+      <a href="https://pypi.org/project/cse-frog/">PyPI</a>
+      <a href="https://note.com/emilia_lab/n/ne9082f0193a7">紹介記事（note）</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

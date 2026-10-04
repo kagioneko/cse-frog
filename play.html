@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ja" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ブラウザで🐸を飼う — cse-frog</title>
+<meta name="description" content="インストールなしで、ブラウザの中で本物の cse-frog を動かせます。えさをあげて、つまみを回して、予測の内訳をのぞく。">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ブラウザで🐸を飼う — cse-frog">
+<meta property="og:description" content="インストールなしで、本物の cse-frog がブラウザの中で動きます。">
+<meta property="og:image" content="https://kagioneko.github.io/cse-frog/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1+Code:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/play.css">
+<script src="js/site.js"></script>
+<script src="js/play.js" defer></script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/pixel-icon.png" alt="" width="34" height="34"><b>cse-frog</b></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">メニュー</button>
+    <nav class="nav" id="nav" aria-label="サイト内">
+      <a href="./">トップ</a>
+      <a href="play.html" aria-current="page">ブラウザで飼う</a>
+      <a href="docs/handbook.html">ドキュメント</a>
+      <a href="https://github.com/kagioneko/cse-frog" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <button class="theme-btn" type="button" aria-label="明るさを切り替える" title="明るさを切り替える">◐</button>
+  </div>
+</header>
+
+<main class="wrap play">
+
+  <section class="play-intro">
+    <img src="assets/pixel-banner.webp" alt="ドット絵の CSE カエル" width="467" height="242">
+    <div>
+      <span class="eyebrow">PLAYGROUND</span>
+      <h1 class="h-display">ブラウザで🐸を飼う</h1>
+      <p>えさ（系列）をあげて、つまみを回して、予測の内訳をのぞいてみましょう。動いているのは <code>pip install cse-frog</code> と同じ本物のコードです。<strong>すべてあなたのブラウザの中で動き、何も送信しません。</strong></p>
+      <p class="status" id="status" role="status" aria-live="polite"><span class="dot"></span><span id="status-text">準備しています…（初回は Python と numpy の読み込みで十数秒かかることがあります）</span></p>
+      <noscript><p class="err-box">この体験ページは JavaScript が必要です。</p></noscript>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="遊び方">
+    <button role="tab" id="tab-knobs" aria-controls="panel-knobs" aria-selected="true">つまみで遊ぶ</button>
+    <button role="tab" id="tab-code" aria-controls="panel-code" aria-selected="false" tabindex="-1">コードを書く</button>
+  </div>
+
+  <section id="panel-knobs" role="tabpanel" aria-labelledby="tab-knobs" class="panel knobs-panel">
+
+    <div class="pcard label-card" id="feed">
+      <h2><span class="step">1</span>えさをあげる</h2>
+      <div class="presets" role="group" aria-label="お手本のえさ">
+        <button type="button" class="chip" data-preset="rrd">右右下</button>
+        <button type="button" class="chip" data-preset="weather">天気</button>
+        <button type="button" class="chip" data-preset="machine">機械のログ</button>
+        <button type="button" class="chip" data-preset="words">ことば</button>
+      </div>
+      <fieldset class="mode">
+        <legend>記号の区切り方</legend>
+        <label><input type="radio" name="mode" value="chars" checked> 1文字＝1記号</label>
+        <label><input type="radio" name="mode" value="words"> スペース区切り＝1記号</label>
+      </fieldset>
+      <label class="field">
+        <span>えさ（1行に1本の系列）</span>
+        <textarea id="data" rows="6" spellcheck="false" maxlength="20000"></textarea>
+      </label>
+      <label class="field inline"><span>何周くり返して覚える？（epochs）</span><input id="epochs" type="number" min="1" max="50" value="5"></label>
+      <button type="button" class="btn primary" id="learn" disabled>覚えさせる</button>
+      <p class="hint" id="learned">まだ何も覚えていません。</p>
+      <div class="symbols" id="symbols" aria-label="覚えた記号（押すと、その記号から出ているつながりが見られます）"></div>
+    </div>
+
+    <div class="pcard label-card" id="knob-card">
+      <h2><span class="step">2</span>つまみを回す</h2>
+      <p class="hint">動かすと、同じえさで 🐸 を作り直して覚え直します。</p>
+      <div id="knobs"></div>
+      <button type="button" class="btn small" id="reset-knobs">素直な設定に戻す</button>
+    </div>
+
+    <div class="pcard label-card wide" id="peek-card">
+      <h2><span class="step">3</span>中をのぞく</h2>
+      <div class="ask">
+        <label class="field grow"><span>ここまでの並び</span><input id="prefix" type="text" spellcheck="false" maxlength="500" placeholder="例: 右右"></label>
+        <button type="button" class="btn primary" id="ask" disabled>次を聞く</button>
+      </div>
+      <div class="answer" id="answer" hidden>
+        <p class="predict">🐸「次はたぶん <b id="predict-tok"></b>」</p>
+        <div class="bars" id="bars"></div>
+        <div class="legend"><span><i class="seg-direct"></i>直接</span><span><i class="seg-history"></i>履歴</span><span><i class="seg-pair"></i>並び</span><span><i class="seg-trace"></i>痕跡</span><span>右端の数字＝確率</span></div>
+        <details class="numbers"><summary>数字で見る（frog.explain の中身）</summary><div class="table-wrap"><table id="explain-table"></table></div></details>
+      </div>
+
+      <div class="gen">
+        <h3>続きを書かせる</h3>
+        <div class="gen-controls">
+          <label class="field inline"><span>いくつ</span><input id="gen-n" type="number" min="1" max="200" value="20"></label>
+          <label><input type="radio" name="how" value="greedy" checked> いちばん高いものを選ぶ</label>
+          <label><input type="radio" name="how" value="sample"> 確率どおりにくじを引く</label>
+          <label class="field inline"><span>くじの種</span><input id="gen-seed" type="number" value="0"></label>
+          <button type="button" class="btn small" id="gen" disabled>書かせる</button>
+        </div>
+        <p class="gen-out" id="gen-out"></p>
+      </div>
+
+      <div class="edge-view" id="edge-view" hidden>
+        <h3>「<span id="edge-tok"></span>」から出ているつながり（frog.edges）</h3>
+        <div class="bars" id="edge-bars"></div>
+      </div>
+      <p class="err-box" id="knob-err" hidden></p>
+    </div>
+  </section>
+
+  <section id="panel-code" role="tabpanel" aria-labelledby="tab-code" class="panel code-panel" hidden>
+    <div class="pcard label-card wide">
+      <div class="code-head">
+        <h2>Python を書いて 🐸 をいじる</h2>
+        <label class="field inline"><span>お手本</span>
+          <select id="example">
+            <option value="basic">基本：作る・覚える・予測する</option>
+            <option value="break">設定を変えて壊してみる</option>
+            <option value="topp">Top-p サンプラーを自作する</option>
+            <option value="save">保存して読み込む</option>
+            <option value="shared">「つまみ」で作った 🐸 を使う</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint"><code>Frog</code> と <code>END</code> は最初から使えます。「つまみで遊ぶ」で覚えさせた 🐸 は <code>frog</code> という名前で入っています。Ctrl+Enter（Mac は ⌘+Enter）でも実行できます。</p>
+      <textarea id="code" class="code-input" rows="16" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Python コード"></textarea>
+      <div class="code-actions">
+        <button type="button" class="btn primary" id="run" disabled>実行</button>
+        <button type="button" class="btn small" id="stop" disabled>止める（Python を再起動）</button>
+        <button type="button" class="btn small" id="clear">出力を消す</button>
+      </div>
+      <pre class="code out" id="out" aria-live="polite"></pre>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div>cse-frog — MIT License. © 2026 Emilia Lab / 鍵乃ねこ (kagioneko)。Python は <a href="https://pyodide.org/" target="_blank" rel="noopener">Pyodide</a> で動いています。</div>
+    <nav aria-label="外部リンク">
+      <a href="https://github.com/kagioneko/cse-frog" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://pypi.org/project/cse-frog/" target="_blank" rel="noopener">PyPI</a>
+      <a href="https://note.com/emilia_lab/n/ne9082f0193a7" target="_blank" rel="noopener">紹介記事（note）</a>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
