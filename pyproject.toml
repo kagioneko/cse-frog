@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cse-frog"  # owner decision 2026-10-04: distribution name cse-frog (pip install cse-frog); the import name stays `cse`
-version = "0.0.1.dev0"
+version = "0.1.0"
 description = "A tiny sequence-prediction AI for learning Python and how language models work (Chain-Spike Engine, course edition)"
 readme = "README.md"
 requires-python = ">=3.10"
