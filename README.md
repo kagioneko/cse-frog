@@ -43,7 +43,7 @@ cse も同じで、言語モデル(LM)に必要な臓器を一通り持った、
 あくまで「似た働き」です。違い(不応期は禁止、文脈は2つだけ、など)も含めて比べてみてください。
 
 ## クイックスタート
-全機能・全設定の一覧は [docs/REFERENCE.md](docs/REFERENCE.md)、遊び方・壊し方・改造のしかたは [docs/HANDBOOK.md](docs/HANDBOOK.md) にあります。
+全機能・全設定の一覧は [docs/REFERENCE.md](docs/REFERENCE.md)、遊び方・壊し方・改造のしかたは [docs/HANDBOOK.md](docs/HANDBOOK.md)、設定をいじると何が起こるかは [docs/CONFIG_GUIDE.md](docs/CONFIG_GUIDE.md) にあります。
 
 
 ```python
