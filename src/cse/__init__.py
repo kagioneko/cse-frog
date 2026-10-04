@@ -24,7 +24,7 @@ import numpy as np
 from ._engine import ChainSpikeEngine, CSEConfig
 
 __all__ = ["Frog", "END"]
-__version__ = "0.0.1.dev0"
+__version__ = "0.2.0"
 
 class _EndMarker:
     """「ここで系列が終わる」を表す特別な目印。表示は <END>。利用者の記号(文字列など)とはぶつかりません。"""

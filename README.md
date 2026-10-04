@@ -59,6 +59,7 @@ frog = Frog()                                # 🐸 を1匹つくる
 frog.learn([["右", "右", "下"]] * 10)         # 行動の系列を覚えさせる
 print(frog.predict(["右", "右"]))             # -> 下
 print(frog.top(["右"], k=2))                 # 確率の高い順に2つ
+print(frog.generate(["右"], greedy=True))   # 続きをしゃべらせる -> ['右', '下']
 ```
 
 - `learn()` の渡し方は3通り: 文字列1つ `"右右下"`(1文字=1記号の1本の系列)、リスト1つ `["正常", "温度上昇", "停止"]`(1要素=1記号の1本の系列。「停止」は「停」と「止」に分かれません)、リストのリスト `[[...], [...]]`(何本もの系列)。
@@ -75,6 +76,7 @@ print(frog.top(["右"], k=2))                 # 確率の高い順に2つ
 | [02_context_and_inhibition](notebooks/02_context_and_inhibition.ipynb) | 並びの記憶 / 不応期 / history_boost |
 | [03_memory_and_forgetting](notebooks/03_memory_and_forgetting.ipynb) | 忘却の2つの罠 / 並びの記憶は忘れない / 遠くを学ぶ |
 | [04_break_your_frog](notebooks/04_break_your_frog.ipynb) | 壊し放題実験場・「何も変わらない」の診断器・自作top-p |
+| [05_add_parts](notebooks/05_add_parts.ipynb) | 🐸にしゃべらせる(`generate`)・生成の1歩を解剖・自作top-p・自作の繰り返しペナルティ |
 
 各ノートブックの先頭に「Open in Colab」ボタンがあります。
 

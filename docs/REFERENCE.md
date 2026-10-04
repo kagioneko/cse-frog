@@ -3,7 +3,7 @@
 `cse` 0.0.1.dev0 の全機能の一覧です。説明はすべて、実際のコード(`src/cse/__init__.py` と `src/cse/_engine.py`)の動きに合わせています。
 
 - [Frog](#frog) — 🐸 本体
-- [学習と予測](#学習と予測) — `learn` / `predict` / `top` / `probabilities`
+- [学習と予測](#学習と予測) — `learn` / `predict` / `top` / `probabilities` / `generate`
 - [中身をのぞく](#中身をのぞく) — `scores` / `explain` / `show` / `edges`
 - [保存と読み込み](#保存と読み込み) — `save` / `load`
 - [END](#end) — 系列の終わり
@@ -92,6 +92,25 @@ frog.probabilities(prefix=()) -> {記号: 確率}
 frog = Frog().learn([["右", "右", "下"] * 5])
 frog.predict(["右", "右"])          # -> '下'
 frog.top(["右", "右"], k=2)         # -> [('下', 0.777...), ('右', 0.222...)]
+```
+
+### `generate`
+```python
+frog.generate(prefix=(), n=20, *, greedy=False, seed=None) -> 文字列 または [記号, ...]
+```
+`prefix` の続きを最大 `n` 個つくります。`END` が選ばれたらそこで止まります(`END` 自体は返しません)。
+
+- 1歩ずつ、それまでの列 `prefix + ここまでの生成` で [`probabilities`](#probabilities) を計算し、その確率で次の記号を1つ選びます。だから途中のどの1歩も `frog.show(prefix + ここまでの生成)` でのぞけます。
+- `greedy=True`: 毎回いちばん確率の高い記号を選びます(毎回同じ結果、各歩は `predict` と同じ)。
+- `greedy=False`(既定): 確率どおりにくじを引きます。`seed` を決めると毎回同じ結果になります。くじは Frog 専用の乱数(`random.Random(seed)`)で引くので、プログラム全体の `random` の状態は変わりません。
+- `prefix` が文字列なら文字列を、リストならリストを返します(`prefix` 自体は含みません)。
+- `n` が 0 以上の整数でないと `ValueError`。覚えていない記号を渡すと `ValueError`。
+
+```python
+frog = Frog().learn([["右", "右", "下"]] * 3)
+frog.generate(["右"], greedy=True)        # -> ['右', '下']
+frog.generate(["右"], seed=1)             # くじ。seed が同じなら毎回同じ
+Frog().learn("あいうえお").generate("あ", n=3, greedy=True)   # -> 'いうえ'
 ```
 
 ---
