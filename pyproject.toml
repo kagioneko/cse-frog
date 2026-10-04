@@ -12,6 +12,10 @@ dependencies = ["numpy"]
 license = {text = "MIT"}
 authors = [{name = "Emilia Lab"}, {name = "鍵乃ねこ (kagioneko)"}]
 
+[project.urls]
+Repository = "https://github.com/kagioneko/cse-frog"
+Funding = "https://github.com/sponsors/kagioneko"
+
 [project.optional-dependencies]
 test = ["pytest"]
 

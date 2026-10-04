@@ -1,4 +1,6 @@
-# cse(仮の名前)🐸
+# cse 🐸
+
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/kagioneko?label=Sponsor&logo=githubsponsors&color=EA4AAA)](https://github.com/sponsors/kagioneko)
 
 順番のあるデータを覚えて「次に何が来そうか」を予測する、**学習用の小さなAI**です。
 Pythonの練習や、言語モデル(LM)の仕組みを手で触って理解するために作りました。
@@ -142,3 +144,6 @@ def top_p(frog, prefix, p=0.9):
     tokens, weights = zip(*keep)
     return random.choices(tokens, weights=weights)[0]
 ```
+
+## 応援する 🐸
+cse は Emilia Lab / 鍵乃ねこ が個人で研究・開発しています。気に入ったら [GitHub Sponsors](https://github.com/sponsors/kagioneko) で応援してもらえると、🐸の研究と教材づくりの続きに使わせていただきます。
