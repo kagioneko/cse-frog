@@ -1,4 +1,5 @@
 import math
+import random
 
 import pytest
 
@@ -190,3 +191,45 @@ def test_save_rejects_unsupported_tokens_and_load_rejects_other_files(tmp_path):
         z.writestr("meta.json", '{"format": "something-else"}')
     with pytest.raises(ValueError):
         Frog.load(tmp_path / "other.cse")
+
+
+def test_generate_greedy_follows_predict_and_stops_at_end():
+    f = Frog().learn([["右", "右", "下"]] * 3)
+    out = f.generate(["右"], n=10, greedy=True)
+    seq = ["右"]
+    for tok in out:                                   # every greedy step equals predict() on the sequence so far
+        assert f.predict(seq) == tok
+        seq.append(tok)
+    assert f.predict(seq) is END                      # stopped because the next one is <END>
+    assert END not in out and len(out) <= 10
+
+
+def test_generate_types_limits_and_errors():
+    f = Frog().learn("あいうえお")
+    s = f.generate("あ", n=3, greedy=True)
+    assert isinstance(s, str) and len(s) <= 3 and s == "いうえ"
+    assert f.generate("あ", n=0) == ""
+    assert f.generate(["あ"], n=2, greedy=True) == ["い", "う"]
+    with pytest.raises(ValueError):
+        f.generate("あ", n=-1)
+    with pytest.raises(ValueError):
+        f.generate("か")                              # unknown symbol
+
+
+def test_generate_seed_is_reproducible_and_keeps_user_random_state():
+    f = Frog(temperature=2.0).learn([["A", "B"]] * 5 + [["A", "C"]] * 4 + [["A", "D"]] * 3)
+    random.seed(123)
+    before = random.random()
+    random.seed(123)
+    a = f.generate(["A"], n=5, seed=7)
+    b = f.generate(["A"], n=5, seed=7)
+    assert a == b
+    assert random.random() == before                 # the user's global random state was not touched
+
+
+def test_generate_sampling_follows_probabilities():
+    f = Frog().learn([["右", "右", "下"]] * 3)
+    p = f.probabilities(["右", "右"])
+    draws = [f.generate(["右", "右"], n=1, seed=i) for i in range(3000)]
+    share = sum(d == ["下"] for d in draws) / len(draws)
+    assert abs(share - p["下"]) < 0.03
