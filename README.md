@@ -45,6 +45,18 @@ cse も同じで、言語モデル(LM)に必要な臓器を一通り持った、
 ## クイックスタート
 全機能・全設定の一覧は [docs/REFERENCE.md](docs/REFERENCE.md)、遊び方・壊し方・改造のしかたは [docs/HANDBOOK.md](docs/HANDBOOK.md)、設定をいじると何が起こるかは [docs/CONFIG_GUIDE.md](docs/CONFIG_GUIDE.md) にあります。
 
+## ノートブックで遊ぶ 🐸
+
+| ノートブック | 中身 |
+|---|---|
+| [00_hello_frog](notebooks/00_hello_frog.ipynb) | 🐸を作る・覚えさせる・中を見る・保存する |
+| [01_prediction_knobs](notebooks/01_prediction_knobs.ipynb) | temperature / probability_mode / top_k_edges |
+| [02_context_and_inhibition](notebooks/02_context_and_inhibition.ipynb) | 並びの記憶 / 不応期 / history_boost |
+| [03_memory_and_forgetting](notebooks/03_memory_and_forgetting.ipynb) | 忘却の2つの罠 / 並びの記憶は忘れない / 遠くを学ぶ |
+| [04_break_your_frog](notebooks/04_break_your_frog.ipynb) | 壊し放題実験場・「何も変わらない」の診断器・自作top-p |
+
+各ノートブックの先頭に「Open in Colab」ボタンがあります。
+
 
 ```python
 from cse import Frog                  # pip install cse(公開前)
