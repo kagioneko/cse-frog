@@ -43,7 +43,7 @@ cse も同じで、言語モデル(LM)に必要な臓器を一通り持った、
 あくまで「似た働き」です。違い(不応期は禁止、文脈は2つだけ、など)も含めて比べてみてください。
 
 ## クイックスタート
-インストール(PyPI 登録までは GitHub から):
+インストール(PyPI に `cse-frog` として登録するまでは GitHub から。使うときの名前は `from cse import Frog`):
 ```bash
 pip install git+https://github.com/kagioneko/cse-frog.git
 ```
