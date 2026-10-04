@@ -52,10 +52,10 @@
   <main class="doc label-card">
     <p class="doc-src">このページは <a href="https://github.com/kagioneko/cse-frog/blob/main/docs/REFERENCE.md">GitHub の文書</a> から作っています。</p>
 <h1 id="cse-api-リファレンス-">cse API リファレンス 🐸</h1>
-<p><code>cse</code> 0.0.1.dev0 の全機能の一覧です。説明はすべて、実際のコード(<code>src/cse/__init__.py</code> と <code>src/cse/_engine.py</code>)の動きに合わせています。</p>
+<p><code>cse</code> 0.2.0 の全機能の一覧です。説明はすべて、実際のコード(<code>src/cse/__init__.py</code> と <code>src/cse/_engine.py</code>)の動きに合わせています。</p>
 <ul>
 <li><a href="#frog">Frog</a> — 🐸 本体</li>
-<li><a href="#学習と予測">学習と予測</a> — <code>learn</code> / <code>predict</code> / <code>top</code> / <code>probabilities</code></li>
+<li><a href="#学習と予測">学習と予測</a> — <code>learn</code> / <code>predict</code> / <code>top</code> / <code>probabilities</code> / <code>generate</code></li>
 <li><a href="#中身をのぞく">中身をのぞく</a> — <code>scores</code> / <code>explain</code> / <code>show</code> / <code>edges</code></li>
 <li><a href="#保存と読み込み">保存と読み込み</a> — <code>save</code> / <code>load</code></li>
 <li><a href="#end">END</a> — 系列の終わり</li>
@@ -153,6 +153,22 @@ print(frog.config.refractory_steps)    # -&gt; 0
 <pre><code class="language-python">frog = Frog().learn([[&quot;右&quot;, &quot;右&quot;, &quot;下&quot;] * 5])
 frog.predict([&quot;右&quot;, &quot;右&quot;])          # -&gt; '下'
 frog.top([&quot;右&quot;, &quot;右&quot;], k=2)         # -&gt; [('下', 0.777...), ('右', 0.222...)]
+</code></pre>
+<h3 id="generate"><code>generate</code></h3>
+<pre><code class="language-python">frog.generate(prefix=(), n=20, *, greedy=False, seed=None) -&gt; 文字列 または [記号, ...]
+</code></pre>
+<p><code>prefix</code> の続きを最大 <code>n</code> 個つくります。<code>END</code> が選ばれたらそこで止まります(<code>END</code> 自体は返しません)。</p>
+<ul>
+<li>1歩ずつ、それまでの列 <code>prefix + ここまでの生成</code> で <a href="#probabilities"><code>probabilities</code></a> を計算し、その確率で次の記号を1つ選びます。だから途中のどの1歩も <code>frog.show(prefix + ここまでの生成)</code> でのぞけます。</li>
+<li><code>greedy=True</code>: 毎回いちばん確率の高い記号を選びます(毎回同じ結果、各歩は <code>predict</code> と同じ)。</li>
+<li><code>greedy=False</code>(既定): 確率どおりにくじを引きます。<code>seed</code> を決めると毎回同じ結果になります。くじは Frog 専用の乱数(<code>random.Random(seed)</code>)で引くので、プログラム全体の <code>random</code> の状態は変わりません。</li>
+<li><code>prefix</code> が文字列なら文字列を、リストならリストを返します(<code>prefix</code> 自体は含みません)。</li>
+<li><code>n</code> が 0 以上の整数でないと <code>ValueError</code>。覚えていない記号を渡すと <code>ValueError</code>。</li>
+</ul>
+<pre><code class="language-python">frog = Frog().learn([[&quot;右&quot;, &quot;右&quot;, &quot;下&quot;]] * 3)
+frog.generate([&quot;右&quot;], greedy=True)        # -&gt; [&#x27;右&#x27;, &#x27;下&#x27;]
+frog.generate([&quot;右&quot;], seed=1)             # くじ。seed が同じなら毎回同じ
+Frog().learn(&quot;あいうえお&quot;).generate(&quot;あ&quot;, n=3, greedy=True)   # -&gt; &#x27;いうえ&#x27;
 </code></pre>
 <hr />
 <h2 id="中身をのぞく">中身をのぞく</h2>

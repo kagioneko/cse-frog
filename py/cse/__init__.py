@@ -24,7 +24,7 @@ import numpy as np
 from ._engine import ChainSpikeEngine, CSEConfig
 
 __all__ = ["Frog", "END"]
-__version__ = "0.0.1.dev0"
+__version__ = "0.2.0"
 
 class _EndMarker:
     """「ここで系列が終わる」を表す特別な目印。表示は <END>。利用者の記号(文字列など)とはぶつかりません。"""
@@ -368,6 +368,39 @@ class Frog:
         """確率の高い順に k 個、(記号, 確率) を返します。"""
         items = sorted(self.probabilities(prefix).items(), key=lambda kv: -kv[1])
         return items[:k]
+
+    def generate(self, prefix: SequenceLike = (), n: int = 20, *, greedy: bool = False, seed=None):
+        """prefix の続きを、🐸に最大 n 個しゃべらせます。END(<END>)が出たらそこで止まります。
+
+        - 1歩ずつ「今までの列」で probabilities() を計算し、その確率で次の記号を1つ選んで列に足します。
+          だから途中のどの1歩も、frog.show(prefix + ここまでの生成) で中身をのぞけます。
+        - greedy=True なら、毎回いちばん確率の高い記号を選びます(毎回同じ結果)。
+        - greedy=False(既定)なら、確率どおりにくじを引きます。seed を決めると毎回同じ結果になります。
+          くじは Frog 専用の乱数で引くので、あなたのプログラムの random の状態は変わりません。
+        - 文字列で渡すと文字列で、リストで渡すとリストで返します(prefix 自体は含みません)。
+        """
+        if not isinstance(n, int) or n < 0:
+            raise ValueError("n は 0 以上の整数で指定してください。")
+        rng = random.Random(seed)
+        start = self._as_tokens(prefix)
+        out: List[Token] = []
+        for _ in range(n):
+            ranked = sorted(self.probabilities(start + out).items(), key=lambda kv: -kv[1])
+            if greedy:
+                tok = ranked[0][0]
+            else:
+                r, acc, tok = rng.random(), 0.0, ranked[-1][0]
+                for sym, p in ranked:
+                    acc += p
+                    if r < acc:
+                        tok = sym
+                        break
+            if tok is END:
+                break
+            out.append(tok)
+        if isinstance(prefix, str):
+            return "".join(str(t) for t in out)
+        return out
 
     def predict(self, prefix: SequenceLike = ()) -> Token:
         """prefix の次に一番来そうな記号を1つ返します(END、表示は <END> なら「ここで終わりそう」)。"""
