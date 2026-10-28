@@ -380,6 +380,17 @@ pre.code .s { color: #f2c66d; }
 .nb span { font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
 .nb em { font-style: normal; font-size: 12px; font-weight: 700; color: var(--cyan); }
 
+.made-with { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 22px; align-items: center;
+  padding: 18px; text-decoration: none; color: var(--ink); }
+.made-with:hover { color: var(--ink); }
+.made-with img { width: 100%; height: auto; border-radius: 6px; display: block; }
+.made-with div { display: grid; gap: 10px; }
+.made-with b { font-family: var(--f-mono); font-size: 16px; }
+.made-with span { font-size: 14px; color: var(--ink-soft); line-height: 1.8; }
+.made-with em { font-style: normal; font-size: 13px; font-weight: 700; color: var(--cyan); }
+.made-with-more { margin: 14px 0 0; font-size: 14px; color: var(--ink-soft); }
+@media (max-width: 720px) { .made-with { grid-template-columns: 1fr; } }
+
 .cta-band { margin: 90px 0 0; padding: 46px 0; background: var(--code-bg); color: var(--code-ink); }
 .cta-band .wrap { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
 .cta-band img { width: min(360px, 100%); image-rendering: auto; border-radius: 6px; }
