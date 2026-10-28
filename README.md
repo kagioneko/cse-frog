@@ -47,6 +47,8 @@ cse も同じで、言語モデルの**基本の流れ(覚える → 点数 → 
 
 📝 紹介記事(note): [🐸を1匹飼うと、言語モデルの中身が見える ― pip install cse-frog](https://note.com/emilia_lab/n/ne9082f0193a7)
 
+🎃 作例: [The Haunted Frog](https://github.com/kagioneko/the-haunted-frog) — 🐸 にハロウィンの言葉を60行覚えさせて、ターミナルに住まわせた作品です(Hacktoberfest 2026 応募作)。学習回数を増やすと出力が「THE GHOST」「THE MACHINE」に偏る、といった失敗も実験として記録しています。記事(英語): [DEV](https://dev.to/sakiha6720/i-taught-a-tiny-open-source-language-model-to-speak-halloween-meet-the-haunted-frog-1phf)
+
 ## クイックスタート
 インストール(使うときの名前は `from cse import Frog`):
 ```bash
