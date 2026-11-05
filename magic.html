@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🐸魔法実験室 — cse-frog</title>
+<meta name="description" content="言葉を食べて魔法を覚え、勝手に詠唱を改変する短命な使い魔。教えた詠唱を混ぜて唱え、判定エンジンが結果を決めます。ブラウザの中だけで動きます。">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta property="og:type" content="website">
+<meta property="og:title" content="🐸魔法実験室 — cse-frog">
+<meta property="og:description" content="魔法は教えた。正しく使うとは言っていない。">
+<meta property="og:image" content="https://kagioneko.github.io/cse-frog/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1+Code:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/play.css">
+<link rel="stylesheet" href="css/magic.css">
+<script src="js/site.js"></script>
+<script src="js/magic.js" defer></script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/pixel-icon.png" alt="" width="34" height="34"><b>cse-frog</b></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">メニュー</button>
+    <nav class="nav" id="nav" aria-label="サイト内">
+      <a href="./">トップ</a>
+      <a href="play.html">ブラウザで飼う</a>
+      <a href="magic.html" aria-current="page">魔法実験室</a>
+      <a href="docs/handbook.html">ドキュメント</a>
+      <a href="https://github.com/kagioneko/cse-frog" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <button class="theme-btn" type="button" aria-label="明るさを切り替える" title="明るさを切り替える">◐</button>
+  </div>
+</header>
+
+<main class="wrap play magic">
+
+  <section class="play-intro">
+    <img src="assets/pixel-banner.webp" alt="ドット絵の CSE カエル" width="467" height="242">
+    <div>
+      <span class="eyebrow">MAGIC LAB</span>
+      <h1 class="h-display">🐸 魔法実験室</h1>
+      <p>使い魔のカエルに魔法の詠唱を教えて、召喚してみましょう。カエルは意味をわかっていません。覚えた詠唱を<strong>勝手に混ぜて</strong>唱えます。何が起きるかは、別の判定エンジンが決めます。</p>
+      <p class="motto">「魔法は教えた。正しく使うとは言っていない。」</p>
+      <p>召喚のたびに新しい🐸が生まれ、1つ唱えて消えます。<strong>召喚も判定もあなたのブラウザの中で動き、入力した詠唱はどこにも送信しません。</strong>（Python の実行環境 Pyodide とフォントだけ、外部の配信サービスから読み込みます）</p>
+      <p class="status" id="status" role="status" aria-live="polite"><span class="dot"></span><span id="status-text">準備しています…（初回は Python と numpy の読み込みで十数秒かかることがあります）</span></p>
+      <noscript><p class="err-box">このページは JavaScript が必要です。</p></noscript>
+    </div>
+  </section>
+
+  <div class="panel magic-grid">
+
+    <div class="pcard label-card">
+      <h2><span class="step">1</span>詠唱を教える</h2>
+      <div class="ask">
+        <label class="field grow"><span>詠唱（60文字まで・英語もOK）</span>
+          <input id="teach-text" type="text" maxlength="60" spellcheck="false" placeholder="例: 炎よ、敵を焼き尽くせ！"></label>
+        <button type="button" class="btn primary" id="teach" disabled>教える</button>
+      </div>
+      <p class="hint" id="teach-msg">URL・メールアドレス・長い数字は覚えません。個人情報は書かないでね。</p>
+      <div class="taught" id="taught" aria-label="教えた詠唱"></div>
+      <label class="check"><input type="checkbox" id="use-seeds" checked> お手本の詠唱も使う（<span id="seed-count">48</span>個）</label>
+      <details class="seed-list"><summary>お手本の詠唱を見る</summary><ul id="seed-list"></ul></details>
+      <p class="hint">教えた詠唱は、このブラウザの中（localStorage）にだけ残ります。</p>
+    </div>
+
+    <div class="pcard label-card">
+      <h2><span class="step">2</span>召喚する</h2>
+      <fieldset class="mode">
+        <legend>いまの目的</legend>
+        <label><input type="radio" name="goal" value="attack" checked> 敵を倒したい</label>
+        <label><input type="radio" name="goal" value="heal"> 自分たちを回復したい</label>
+      </fieldset>
+      <p class="hint">目的に反する魔法（敵を回復する、味方を攻撃する…）はファンブルになります。</p>
+      <label class="field inline"><span>くじの種（空ならおまかせ）</span><input id="seed" type="number" min="0" max="2147483647" placeholder="おまかせ"></label>
+      <label class="field inline"><span>何匹</span>
+        <select id="count"><option>1</option><option selected>3</option><option>5</option></select></label>
+      <div><button type="button" class="btn primary big" id="summon" disabled>🐸 召喚する</button></div>
+      <p class="hint">同じ詠唱・同じ種・同じ目的なら、何度やっても同じ結果になります。</p>
+    </div>
+
+    <div class="pcard label-card wide">
+      <div class="log-head">
+        <h2><span class="step">3</span>発動記録</h2>
+        <button type="button" class="btn small" id="clear">記録を消す</button>
+      </div>
+      <p class="err-box" id="err" hidden></p>
+      <div id="log" aria-live="polite"><p class="hint" id="log-empty">まだ誰も召喚されていません。</p></div>
+    </div>
+
+    <div class="pcard label-card wide">
+      <h2><span class="step">✦</span>自分で唱えてみる（カエルなし）</h2>
+      <p class="hint">判定エンジンだけを試せます。「氷よ、敵を癒せ！」「深淵のプリンよ、世界を包め！」など。</p>
+      <div class="ask">
+        <label class="field grow"><span>詠唱</span><input id="cast-text" type="text" maxlength="60" spellcheck="false" placeholder="例: 雷よ、敵を眠らせろ！"></label>
+        <button type="button" class="btn" id="cast" disabled>唱える</button>
+      </div>
+      <div id="cast-out"></div>
+    </div>
+
+  </div>
+
+  <p class="hint about">しくみ: カエル（cse-frog）は詠唱を「言葉のかたまり」（炎よ／、／敵を／焼き尽くせ／！、スペースも1つ）で覚え、直前の2つを手がかりに次を選びます。成功・失敗は、辞書とルールでできた判定エンジンが決めます。お手本の詠唱と辞書は AI の Claude が書いたものです。</p>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div>cse-frog — MIT License. © 2026 Emilia Lab / 鍵乃ねこ (kagioneko)。Python は <a href="https://pyodide.org/" target="_blank" rel="noopener">Pyodide</a> で動いています。</div>
+    <nav aria-label="外部リンク">
+      <a href="https://github.com/kagioneko/cse-frog" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://pypi.org/project/cse-frog/" target="_blank" rel="noopener">PyPI</a>
+      <a href="https://note.com/emilia_lab/n/ne9082f0193a7" target="_blank" rel="noopener">紹介記事（note）</a>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
