@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ja" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🐸たまごっち — cse-frog</title>
+<meta name="description" content="話しかけて育てる、中身がぜんぶ見えるカエル。連想の重み・忘却・退屈ブーストを解剖パネルで観察できます。ブラウザの中だけで動き、記憶はこの端末にだけ保存されます。">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta property="og:type" content="website">
+<meta property="og:title" content="🐸たまごっち — cse-frog">
+<meta property="og:description" content="育てた口癖も、忘れかけの記憶も、ぜんぶ見える。">
+<meta property="og:image" content="https://kagioneko.github.io/cse-frog/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+1+Code:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/tamagotchi.css">
+<script src="js/site.js"></script>
+<script src="js/tamagotchi.js" defer></script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/pixel-icon.png" alt="" width="34" height="34"><b>cse-frog</b></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">メニュー</button>
+    <nav class="nav" id="nav" aria-label="サイト内">
+      <a href="./">トップ</a>
+      <a href="play.html">ブラウザで飼う</a>
+      <a href="tamagotchi.html" aria-current="page">たまごっち</a>
+      <a href="magic.html">魔法実験室</a>
+      <a href="docs/handbook.html">ドキュメント</a>
+      <a href="https://github.com/kagioneko/cse-frog" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <button class="theme-btn" type="button" aria-label="明るさを切り替える" title="明るさを切り替える">◐</button>
+  </div>
+</header>
+
+<main class="wrap tama-page">
+<div class="tama">
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>🐸 cse-frog Tamagotchi</h1>
+      <span class="badge" id="stageBadge">Stage 0: おたまじゃくし</span>
+      <span class="badge" id="turnBadge">Turn: 0</span>
+      <span class="badge" id="vocabBadge">語彙: 0</span>
+    </div>
+    <div class="header-actions">
+      <button id="exportBtn" title="育てた記憶をJSONで保存">💾 エクスポート</button>
+      <button id="importBtn" title="JSONから記憶を復元">📂 読み込み</button>
+      <input type="file" id="importFile" accept=".json">
+      <button id="resetBtn" class="danger">🔄 リセット</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- Left Pane:育成・会話エリア -->
+    <section class="panel">
+      <div class="panel-title">
+        <span>育成・会話エリア</span>
+        <span class="wb-note" id="lrInfo">学習率 LR: 0.60 / 最大生成: 2語</span>
+      </div>
+
+      <div class="frog-card" id="frogCard">
+        <div class="frog-avatar-box">
+          <div class="frog-emoji" id="frogEmoji">🫧</div>
+          <div class="frog-status-text" id="frogMoodText">きょろきょろしてる</div>
+        </div>
+        <div class="vitals-list">
+          <div class="vital-row">
+            <div class="vital-head">
+              <span>体力 (Energy)</span>
+              <span class="vital-sub" id="energyVal">100%</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="energyBar"></div>
+            </div>
+          </div>
+          <div class="vital-row">
+            <div class="vital-head">
+              <span>機嫌 (Mood)</span>
+              <span class="vital-sub" id="moodVal">70% (T=1.02)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="moodBar"></div>
+            </div>
+          </div>
+          <div class="vital-row">
+            <div class="vital-head">
+              <span>退屈度 (Boredom)</span>
+              <span class="vital-sub" id="boredomVal">0%</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-threshold" title="60%以上でボケ発動ゾーン"></div>
+              <div class="bar-fill" id="boredomBar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-log" id="chatLog"></div>
+
+      <div class="chips" id="sampleChips">
+        <span class="chip">深夜に眠いからコーヒー飲む</span>
+        <span class="chip">コードのバグを直す</span>
+        <span class="chip">眠いから布団に行く</span>
+        <span class="chip">AIと深夜にコード書く</span>
+        <span class="chip">コーヒーおかわりしたい</span>
+      </div>
+
+      <div class="input-row">
+        <input type="text" id="userInput" maxlength="2000" placeholder="普通に日本語で話しかけてみて…（Enterで送信）">
+        <button class="primary" id="sendBtn">送信</button>
+      </div>
+
+      <div class="timemachine">
+        <span class="tm-label">⏱ 実験用タイムマシン（忘却＆睡眠テスト）</span>
+        <div class="tm-btns">
+          <button data-hours="1">+1時間</button>
+          <button data-hours="6">+6時間</button>
+          <button data-hours="24">+24時間</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Pane: ホワイトボックス解剖パネル -->
+    <section class="panel">
+      <div class="panel-title">
+        <span>🔬 ホワイトボックス解剖パネル</span>
+        <span class="wb-note">Chain-Spike / Hebbian内部状態</span>
+      </div>
+
+      <div class="wb-section">
+        <div class="wb-head">
+          <span>0. 入力トークン切り出し（Intl.Segmenter）</span>
+        </div>
+        <div class="token-list" id="tokenPreview">
+          <span class="empty-state">話しかけると、ここに切り出された単語が表示されます</span>
+        </div>
+      </div>
+
+      <div class="wb-section">
+        <div class="wb-head">
+          <span>1. 直前ターンのスパイク内訳</span>
+          <span class="wb-note" id="boostNote">通常モード</span>
+        </div>
+        <div id="spikeContainer">
+          <span class="empty-state">まだ連鎖がありません。何度か話しかけて記憶を育ててみて！</span>
+        </div>
+      </div>
+
+      <div class="wb-section">
+        <div class="wb-head">
+          <span>2. 忘れかけ記憶メーター（代謝モニター）</span>
+          <span class="wb-note">クリックで入力欄へ救出</span>
+        </div>
+        <div class="memory-list" id="fadingList">
+          <span class="empty-state">忘れかけの連鎖はありません</span>
+        </div>
+      </div>
+
+      <div class="wb-section">
+        <div class="wb-head">
+          <span>3. 定着した口癖（長期記憶 w ≥ 1.0）</span>
+          <span class="wb-note">🔒 減衰しにくい記憶</span>
+        </div>
+        <div class="memory-list" id="strongList">
+          <span class="empty-state">まだ定着した口癖はありません</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</div>
+<p class="tama-note">記憶はこのブラウザの中（localStorage）にだけ保存され、どこにも送信されません。「エクスポート」でJSONに書き出して持ち運べます。</p>
+</main>
+
+</body>
+</html>
